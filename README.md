@@ -68,6 +68,18 @@ loaded in Windy Developer Mode. Build output, `node_modules/`, and the
 self-signed development certificate in `.local-ssl/` are generated locally
 and are not committed.
 
+## Publish to Windy
+
+The GitHub Actions workflow **Publish plugin to Windy** uploads the built
+plugin to Windy's plugin servers. It runs only when started manually from the
+repository's **Actions** tab. Add a repository Actions secret named
+`WINDY_API_KEY` before running it; the workflow builds the plugin, packages
+`dist/`, and sends the archive to Windy's upload API.
+
+The plugin's visibility is controlled by the `private` field in
+[`src/pluginConfig.js`](./src/pluginConfig.js). It is currently `true`, so
+uploads remain private.
+
 ## Network and privacy
 
 The plugin requests loopback access to `localhost`; Chrome may ask for local
