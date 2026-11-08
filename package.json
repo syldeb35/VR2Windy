@@ -1,0 +1,22 @@
+{
+  "name": "vr2windy",
+  "version": "0.1.0",
+  "description": "Windy plugin that displays a Virtual Regatta boat position and compares routes",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prebuild": "node -e \"require('fs').mkdirSync('dist', { recursive: true })\"",
+    "build": "rollup -c --environment SERVE:false && node -e \"require('fs').copyFileSync('package.json', 'dist/package.json')\"",
+    "prestart": "node scripts/create-dev-cert.js && node -e \"require('fs').mkdirSync('dist', { recursive: true })\"",
+    "start": "rollup -w -c"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^29.0.3",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-terser": "^1.0.2",
+    "rollup": "^4.9.6",
+    "rollup-plugin-serve": "^1.1.1",
+    "rollup-plugin-svelte": "^7.1.6",
+    "svelte": "^4.2.20"
+  }
+}

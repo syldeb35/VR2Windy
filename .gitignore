@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.local-ssl/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.DS_Store
