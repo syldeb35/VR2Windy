@@ -1,5 +1,5 @@
 const config = {
-    name: 'vr2windy',
+    name: 'windy-plugin-vr2windy',
     version: '0.1.0',
     title: 'VR2Windy',
     icon: '⛵',
