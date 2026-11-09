@@ -543,7 +543,9 @@
         marker.on('mouseout', () => map.closePopup(popup));
         marker.on('click', () => {
             try {
-                store.set('timestamp', waypoint.timestamp);
+                const myTimestamp = Math.round(waypoint.timestamp/3600/1000)*3600*1000;
+                console.log('Setting timestamp to', new Date(myTimestamp).toLocaleString());
+                store.set('timestamp', myTimestamp);
                 // routeStatus = `Timeline Windy positionnée sur ${label} (${routeName}) : ${waypointTime}.`;
             } catch (error) {
                 routeStatus = `Impossible de régler la timeline Windy : ${error.message}`;
