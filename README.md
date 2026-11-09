@@ -13,18 +13,27 @@ a copy of NMEA output to the dedicated Windy proxy on port `8085`.
 
 - ITYC Dashboard installed in Chrome, Edge, or Opera.
 - Python 3 for the local NMEA proxy.
+- Tkinter for the optional graphical proxy controller (on Linux it may require
+  the distribution's `python3-tk` package).
 - Node.js and npm to build and serve the plugin.
 - OpenSSL to generate a development HTTPS certificate.
 
 ## Run locally
 
-1. Start the Windy proxy from this repository's root:
+1. Start the graphical proxy controller from this repository's root:
 
    ```sh
-   python3 nmea_windy_proxy.py
+   python3 proxy_control.py
    ```
 
-   By default, the proxy listens only on `127.0.0.1:8085`.
+   On Windows, use `py proxy_control.py` if `python3` is not available. Click
+   **Démarrer** to start the proxy. The controller also provides **Arrêter**,
+   **Redémarrer**, a status indicator, and a log. Closing the controller
+   stops the proxy it started, after confirmation. It does not control a proxy
+   started separately; stop that process first if port 8085 is already in use.
+
+   Alternatively, run `python3 nmea_windy_proxy.py` in a terminal and stop it
+   with `Ctrl+C`. By default, the proxy listens only on `127.0.0.1:8085`.
 
 2. Open Virtual Regatta and the ITYC Dashboard. Select a race and enable
    **NMEA output**. Keep the dashboard's normal NMEA port configured for your

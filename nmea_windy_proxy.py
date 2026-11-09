@@ -6,6 +6,7 @@ import socketserver
 import socket
 import argparse
 import logging
+import sys
 import time
 from datetime import datetime, timezone
 from urllib.parse import urlsplit
@@ -285,10 +286,19 @@ def accept_connection(sock):
         return None
 
 
+class NMEAServer(socketserver.TCPServer):
+    allow_reuse_address = sys.platform != "win32"
+
+    def server_bind(self):
+        if sys.platform == "win32":
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        super().server_bind()
+
+
 logging.basicConfig(level=logging.INFO)
 
 logging.info("Creating Server")
-server = socketserver.TCPServer((HOST, PORT), NMEAHandler)
+server = NMEAServer((HOST, PORT), NMEAHandler)
 logging.info("httpd listening on port " + str(PORT))
 
 try:
