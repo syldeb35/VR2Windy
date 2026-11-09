@@ -68,6 +68,9 @@ def parse_nmea_position(message):
         sentence = message.decode("ascii").strip()
         fields = sentence.split("*", 1)[0].split(",")
         if len(fields) < 10 or fields[0] != "$GPRMC" or fields[2] != "A":
+            if fields[0].startswith("$II"):
+                #logging.info("Received: %s", sentence)
+                return None
             return None
 
         latitude = parse_nmea_coordinate(fields[3], fields[4], 2)
