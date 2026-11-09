@@ -55,12 +55,7 @@
                 {formatCoordinate(latestPosition.lat, 'N', 'S')} -
                 {formatCoordinate(latestPosition.lon, 'E', 'W')}
             </div>
-            {#if latestPosition.heading !== null}
-                <div><strong>COG :</strong> {latestPosition.heading.toFixed(1)}°</div>
-            {/if}
-            {#if latestPosition.speed !== null}
-                <div><strong>SOG :</strong> {latestPosition.speed.toFixed(2)} nds</div>
-            {/if}
+            <BoatMeasurements position={latestPosition} />
         </div>
         <button class="button" on:click={centerOnBoat}>Centrer la carte sur le bateau</button>
     {/if}
@@ -82,6 +77,7 @@
     import store from '@windy/store';
     import { onDestroy, onMount } from 'svelte';
 
+    import BoatMeasurements from './BoatMeasurements.svelte';
     import config from './pluginConfig';
 
     const { title } = config;
@@ -125,6 +121,9 @@
         canRdwpsWaves: 'can-rdwps',
         czeAladin: 'cze-aladin',
     };
+    const SAIL_NAMES = [0, "Jib", "Spi", "Stay", "LJ", "C0", "HG", "LG", 8, 9,
+                     // VR sends sailNo + 10 to indicate autoSail. We use sailNo mod 10 to find the sail name sans Auto indication.
+                     "Auto", "Jib &#x24B6;", "Spi &#x24B6;", "Stay &#x24B6;", "LJ &#x24B6;", "C0 &#x24B6;", "HG &#x24B6;", "LG &#x24B6;"];
 
     let raceId = '';
     let raceInput = '';

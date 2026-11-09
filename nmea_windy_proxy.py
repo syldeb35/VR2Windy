@@ -34,6 +34,7 @@ PORT = (int(args.port) if args.port else 8085)
 connections = dict()
 sockets = dict()
 last_positions = {}
+last_instruments = {}
 fleets = {}
 WINDY_ORIGINS = {"https://www.windy.com", "https://windy.com"}
 
@@ -69,7 +70,7 @@ def parse_nmea_position(message):
         fields = sentence.split("*", 1)[0].split(",")
         if len(fields) < 10 or fields[0] != "$GPRMC" or fields[2] != "A":
             if fields[0].startswith("$II"):
-                #logging.info("Received: %s", sentence)
+                logging.info("Received: %s", sentence)
                 return None
             return None
 
@@ -93,6 +94,57 @@ def parse_nmea_position(message):
             "timestamp": parse_nmea_timestamp(fields[1], fields[9]),
         }
     except (UnicodeDecodeError, ValueError):
+        return None
+
+
+def parse_instrument_sentence(message):
+    if not message.strip().startswith((b"$IIMWV", b"$IIVWR", b"$IIHDT", b"$IIRPM")):
+        return None
+    try:
+        sentence = message.decode("ascii").strip()
+        fields = sentence.split("*", 1)[0].split(",")
+        kind = fields[0]
+        if kind not in ("$IIMWV", "$IIVWR", "$IIHDT", "$IIRPM"):
+            return None
+
+        if "*" in sentence:
+            body, checksum = sentence[1:].split("*", 1)
+            actual = 0
+            for char in body:
+                actual ^= ord(char)
+            if not re.fullmatch(r"[0-9A-Fa-f]{2}", checksum) or actual != int(checksum, 16):
+                raise ValueError("invalid checksum")
+
+        def number(value, minimum, maximum=None):
+            result = float(value)
+            if not math.isfinite(result) or result < minimum or (maximum is not None and result > maximum):
+                raise ValueError("value out of range")
+            return result
+
+        if kind == "$IIMWV":
+            if len(fields) < 6 or fields[2] != "T" or fields[4] != "N" or fields[5] != "A":
+                raise ValueError("expected valid true wind in knots")
+            return {"true_wind": {
+                "angle": number(fields[1], 0, 360),
+                "speed": number(fields[3], 0),
+            }}
+        if kind == "$IIVWR":
+            if len(fields) < 5 or fields[2] not in ("L", "R") or fields[4] != "N":
+                raise ValueError("expected apparent wind in knots with side L or R")
+            return {"apparent_wind": {
+                "angle": number(fields[1], 0, 180),
+                "side": fields[2],
+                "speed": number(fields[3], 0),
+            }}
+        if kind == "$IIHDT":
+            if len(fields) < 3 or fields[2] != "T":
+                raise ValueError("expected true heading")
+            return {"boat_heading": number(fields[1], 0, 360)}
+        if len(fields) < 6 or fields[1] != "E" or fields[5] != "A" or not fields[2].isdigit():
+            raise ValueError("expected valid ITYC energy and sail")
+        return {"sail": int(fields[2]), "energy": number(fields[3], 0)}
+    except (UnicodeDecodeError, ValueError) as error:
+        logging.warning("Invalid instrument sentence: %s", error)
         return None
 
 
@@ -183,6 +235,9 @@ class NMEAHandler(http.server.BaseHTTPRequestHandler):
             last_positions[race_id] = position
         else:
             store_ais(race_id, post_body)
+            instruments = parse_instrument_sentence(post_body)
+            if instruments is not None:
+                last_instruments.setdefault(race_id, {}).update(instruments)
         forward_message(int(race_id), post_body)
         self.send_response(204)
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -206,7 +261,10 @@ class NMEAHandler(http.server.BaseHTTPRequestHandler):
         if position is None:
             self.send_json_response(404, {"error": "No position received for this race"})
             return
-        self.send_json_response(200, position)
+        self.send_json_response(200, {
+            **position,
+            "instruments": last_instruments.get(race_id, {}),
+        })
 
     def do_OPTIONS(self):
         match = re.fullmatch(r"/(?:position|fleet)/(\d{1,5})", urlsplit(self.path).path)

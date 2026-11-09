@@ -54,7 +54,12 @@ a copy of NMEA output to the dedicated Windy proxy on port `8085`.
 5. In VR2Windy, enter the numeric race ID (without the stage number), keep port
    `8085` selected, and click **Follow this race**. The map marker and
    coordinates update as NMEA positions arrive. A vector shows the distance
-   traveled in one hour at the current COG/SOG.
+   traveled in one hour at the current COG/SOG. When available, the plugin
+   also shows true wind (IIMWV, reference `T`), apparent wind (IIVWR, including
+   port/starboard), true heading (IIHDT), and ITYC sail number and energy
+   (IIRPM). Wind speeds are reported in knots. These measurements are kept
+   separately for each race and remain at their last received value until
+   updated or the proxy restarts.
 
 6. To compare routes, import up to four `.gpx` files. Each route can be
    removed independently. For GPX files with timestamps, the plugin marks
