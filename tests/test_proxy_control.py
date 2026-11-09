@@ -136,6 +136,26 @@ class ProxyControlWindowTests(unittest.TestCase):
 
 
 class ProxyControlGuiTests(unittest.TestCase):
+    def test_footer_stays_at_bottom_when_resized(self):
+        try:
+            root = tk.Tk()
+        except tk.TclError as error:
+            self.skipTest(f"Graphical display unavailable: {error}")
+        try:
+            ProxyControlWindow(root)
+            footer = next(
+                child for child in root.winfo_children()
+                if isinstance(child, tk.ttk.Label) and child.cget("text") == "© Malouce Software 2026"
+            )
+            for geometry in ("480x300", "700x500"):
+                root.geometry(geometry)
+                root.update()
+                self.assertTrue(footer.winfo_ismapped())
+                self.assertEqual(footer.winfo_y() + footer.winfo_height(), root.winfo_height())
+                self.assertEqual(footer.winfo_width(), root.winfo_width())
+        finally:
+            root.destroy()
+
     def test_graphical_start_restart_stop(self):
         try:
             root = tk.Tk()

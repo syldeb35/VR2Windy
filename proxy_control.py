@@ -65,6 +65,9 @@ class ProxyControlWindow:
         root.minsize(480, 300)
         root.protocol("WM_DELETE_WINDOW", self.close)
 
+        footer = ttk.Label(root, text="© Malouce Software 2026", anchor="e", padding=(12, 4))
+        footer.pack(side="bottom", fill="x")
+
         frame = ttk.Frame(root, padding=12)
         frame.pack(fill="both", expand=True)
         ttk.Label(frame, text="Proxy NMEA local (127.0.0.1:8085)").pack(anchor="w")
@@ -83,6 +86,7 @@ class ProxyControlWindow:
         ttk.Label(frame, text="Journal").pack(anchor="w", pady=(12, 4))
         self.log = scrolledtext.ScrolledText(frame, height=10, state="disabled", wrap="word")
         self.log.pack(fill="both", expand=True)
+        
         self.update_buttons()
         root.after(100, self.poll)
 
@@ -172,8 +176,8 @@ class ProxyControlWindow:
                     if action == "restart":
                         self.start()
                 else:
-                    self.status.set(f"Proxy arrêté inattendument (code {exit_code})")
-                    self.write_log(f"Le proxy s'est arrêté inattendument (code {exit_code}).")
+                    self.status.set(f"Proxy arrêté inopinément (code {exit_code})")
+                    self.write_log(f"Le proxy s'est arrêté inopinément (code {exit_code}).")
                     self.update_buttons()
             elif (self.state == "stopping" and self.stop_deadline is not None
                   and not self.force_stopped
