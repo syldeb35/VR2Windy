@@ -2,6 +2,15 @@
     export let position;
     let SAIL_NAMES = [];
     let STAMINA_EMOTICON = [];
+    function convertTrueWindAngle(angle) {
+        let side;
+        if (angle > 180) {
+            side = 'bâbord';
+            return { angle: 360 - angle, side };
+        }
+        side = 'tribord';
+        return { angle: angle, side };
+    }
     function getLang() {
         if (navigator.languages !== undefined) {
             console.log("Detected language: " + navigator.languages[0]);
@@ -33,7 +42,7 @@
 
 <div class="title"><strong>Vent</strong></div>
 {#if instruments.true_wind && Number.isFinite(instruments.true_wind.angle) && Number.isFinite(instruments.true_wind.speed)}
-    <div class="marge"><strong>Réel :</strong> {instruments.true_wind.angle.toFixed(1)}° / {instruments.true_wind.speed.toFixed(1)} nds</div>
+    <div class="marge"><strong>Réel :</strong> {convertTrueWindAngle(instruments.true_wind.angle).angle.toFixed(1)}° {convertTrueWindAngle(instruments.true_wind.angle).side} / {instruments.true_wind.speed.toFixed(1)} nds</div>
 {/if}
 {#if instruments.apparent_wind && Number.isFinite(instruments.apparent_wind.angle) && Number.isFinite(instruments.apparent_wind.speed) && ['L', 'R'].includes(instruments.apparent_wind.side)}
     <div class="marge"><strong>Apparent :</strong> {instruments.apparent_wind.angle.toFixed(1)}° {instruments.apparent_wind.side === 'R' ? 'tribord' : 'bâbord'} / {instruments.apparent_wind.speed.toFixed(1)} nds</div>
