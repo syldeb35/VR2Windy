@@ -47,7 +47,9 @@
 {#if Number.isInteger(instruments.sail)}
     <div class="marge"><strong>Voile :</strong> {@html SAIL_NAMES[instruments.sail]}</div>
 {/if}
-
+{#if Number.isFinite(instruments.foil)}
+    <div class="marge"><strong>Foiling :</strong> {instruments.foil.toFixed(0)}%</div>
+{/if}
 <style>
 
     .title {

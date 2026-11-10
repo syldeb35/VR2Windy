@@ -69,8 +69,8 @@ def parse_nmea_position(message):
         sentence = message.decode("ascii").strip()
         fields = sentence.split("*", 1)[0].split(",")
         if len(fields) < 10 or fields[0] != "$GPRMC" or fields[2] != "A":
-            if fields[0].startswith("$II"):
-                # logging.info("Received: %s", sentence)
+            if fields[0].startswith("$IIRPM"):
+                #logging.info("Received: %s", sentence)
                 return None
             return None
 
@@ -140,9 +140,10 @@ def parse_instrument_sentence(message):
             if len(fields) < 3 or fields[2] != "T":
                 raise ValueError("expected true heading")
             return {"boat_heading": number(fields[1], 0, 360)}
-        if len(fields) < 6 or fields[1] != "E" or fields[5] != "A" or not fields[2].isdigit():
-            raise ValueError("expected valid ITYC energy and sail")
-        return {"sail": int(fields[2]), "energy": number(fields[3], 0)}
+        if kind == "$IIRPM":
+            if len(fields) < 6 or fields[1] != "E" or fields[5] != "A" or not fields[2].isdigit():
+                raise ValueError("expected valid ITYC energy and sail")
+            return {"sail": int(fields[2]), "energy": number(fields[3], 0), "foil": number(fields[4], 0)}
     except (UnicodeDecodeError, ValueError) as error:
         logging.warning("Invalid instrument sentence: %s", error)
         return None

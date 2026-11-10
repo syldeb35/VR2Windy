@@ -15,7 +15,7 @@
         <p class="status" role="status" aria-live="polite">{status}</p>
     {/if}
     <p class="title">Routages </p>
-    {#if !(routeStatus === '')}
+    {#if !routes.length}
         <label for="gpx-file-input">
             (4 fichiers GPX maximum)
         </label>
