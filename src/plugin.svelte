@@ -59,16 +59,17 @@
         </div>
         <button class="button" on:click={centerOnBoat}>Centrer la carte sur le bateau</button>
     {/if}
-    <footer>
+    <p></p>
+    <footer class="footer">
         {#if weatherMetadata}
-        <p class="route-status" role="status">
+        <div class="route-status" role="status">
             Modèle mis à jour il y a {formatUpdateAge(weatherMetadata.updateTimestamp)}
             (ref {weatherMetadata.referenceHour}Z)
-        </p>
+        </div>
         {:else if weatherMetadataError}
-            <p class="route-status" role="status">{weatherMetadataError}</p>
+            <div style="font-size: 12px;">{weatherMetadataError}</div>
         {/if}
-        <p>© 2026 Malouce Software</p>
+        <div style="font-size: 10px;">© 2026 Malouce Software</div>
     </footer>
 </section>
 <script>
@@ -121,9 +122,6 @@
         canRdwpsWaves: 'can-rdwps',
         czeAladin: 'cze-aladin',
     };
-    const SAIL_NAMES = [0, "Jib", "Spi", "Stay", "LJ", "C0", "HG", "LG", 8, 9,
-                     // VR sends sailNo + 10 to indicate autoSail. We use sailNo mod 10 to find the sail name sans Auto indication.
-                     "Auto", "Jib &#x24B6;", "Spi &#x24B6;", "Stay &#x24B6;", "LJ &#x24B6;", "C0 &#x24B6;", "HG &#x24B6;", "LG &#x24B6;"];
 
     let raceId = '';
     let raceInput = '';
@@ -902,10 +900,10 @@
         padding: 8px 12px 16px;
     }
     .title {
-        margin-top: 32px;
+        margin-top: 16px;
         font-size: 16px;
         font-weight: bold;
-        margin-bottom: 8px;
+        margin-bottom: 4px;
         text-decoration-line: underline;
         text-decoration-color: #ff5733;
         text-decoration-style: solid; /*wavy;*/
@@ -967,6 +965,7 @@
 
     .button {
         margin-top: 12px;
+        /* margin-bottom: 16px; */
     }
 
     .status {
@@ -978,6 +977,14 @@
     .position {
         font-size: 13px;
         line-height: 1.6;
+    }
+
+    .coordinates {
+        margin-top: 8px;
+        margin-left: 10px;
+        font-size: 13px;
+        font-weight: bold;
+        margin-bottom: 8px;
     }
 
     .route-info,
@@ -1066,6 +1073,7 @@
         width: 40px;
     }
     footer {
+        margin-top: 16px;
         position: absolute;
         bottom: 0;
         text-align: right;

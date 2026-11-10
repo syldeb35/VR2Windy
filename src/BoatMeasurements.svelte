@@ -1,30 +1,68 @@
 <script>
     export let position;
-    const SAIL_NAMES = [0, "Jib", "Spi", "Stay", "LJ", "C0", "HG", "LG", 8, 9,
-                     // VR sends sailNo + 10 to indicate autoSail. We use sailNo mod 10 to find the sail name sans Auto indication.
-                     "Auto", "Jib &#x24B6;", "Spi &#x24B6;", "Stay &#x24B6;", "LJ &#x24B6;", "C0 &#x24B6;", "HG &#x24B6;", "LG &#x24B6;"];
-
+    let SAIL_NAMES = [];
+    let STAMINA_EMOTICON = [];
+    function getLang() {
+        if (navigator.languages !== undefined) {
+            console.log("Detected language: " + navigator.languages[0]);
+            return navigator.languages[0]; 
+        }
+        return navigator.language;
+    }
+    if (getLang().startsWith("fr")) {
+        SAIL_NAMES = [0, "Génois (Jib) &#x24C2;", "Spi &#x24C2;", "Trinquette (Stay) &#x24C2;", "Génois Léger(LJ) &#x24C2;", "Code 0 &#x24C2;", "Spi Lourd(HG) &#x24C2;", "Spi Léger (LG) &#x24C2;", 8, 9,
+                        "Auto", "Génois (Jib) &#x24B6;", "Spi &#x24B6;", "Trinquette (Stay) &#x24B6;", "Génois Léger(LJ) &#x24B6;", "Code 0 &#x24B6;", "Spi Lourd(HG) &#x24B6;", "Spi Léger (LG) &#x24B6;"];
+    } else {
+        SAIL_NAMES = [0, "Jib &#x24C2;", "Spi &#x24C2;", "Stay &#x24C2;", "LJ &#x24C2;", "C0 &#x24C2;", "HG &#x24C2;", "LG &#x24C2;", 8, 9,
+                        "Auto", "Jib &#x24B6;", "Spi &#x24B6;", "Stay &#x24B6;", "LJ &#x24B6;", "C0 &#x24B6;", "HG &#x24B6;", "LG &#x24B6;"];
+    }
+    STAMINA_EMOTICON = ["😫", "😳", "😒", "😴", "😐", "🙂", "😊", "😀", "😁", "🤩"];
     $: instruments = position.instruments || {};
 </script>
 
 {#if position.heading !== null}
-    <div><strong>COG :</strong> {position.heading.toFixed(1)}°</div>
+    <div class="marge"><strong>COG :</strong> {position.heading.toFixed(1)}°</div>
 {/if}
 {#if position.speed !== null}
-    <div><strong>SOG :</strong> {position.speed.toFixed(2)} nds</div>
+    <div class="marge"><strong>SOG :</strong> {position.speed.toFixed(1)} nds</div>
 {/if}
-{#if Number.isFinite(instruments.boat_heading)}
+<!-- {#if Number.isFinite(instruments.boat_heading)}
     <div><strong>Cap :</strong> {instruments.boat_heading.toFixed(1)}°</div>
-{/if}
+{/if} -->
+
+
+<div class="title"><strong>Vent</strong></div>
 {#if instruments.true_wind && Number.isFinite(instruments.true_wind.angle) && Number.isFinite(instruments.true_wind.speed)}
-    <div><strong>Vent réel :</strong> {instruments.true_wind.angle.toFixed(1)}° / {instruments.true_wind.speed.toFixed(2)} nds</div>
+    <div class="marge"><strong>Réel :</strong> {instruments.true_wind.angle.toFixed(1)}° / {instruments.true_wind.speed.toFixed(1)} nds</div>
 {/if}
 {#if instruments.apparent_wind && Number.isFinite(instruments.apparent_wind.angle) && Number.isFinite(instruments.apparent_wind.speed) && ['L', 'R'].includes(instruments.apparent_wind.side)}
-    <div><strong>Vent apparent :</strong> {instruments.apparent_wind.angle.toFixed(1)}° {instruments.apparent_wind.side === 'R' ? 'tribord' : 'bâbord'} / {instruments.apparent_wind.speed.toFixed(2)} nds</div>
+    <div class="marge"><strong>Apparent :</strong> {instruments.apparent_wind.angle.toFixed(1)}° {instruments.apparent_wind.side === 'R' ? 'tribord' : 'bâbord'} / {instruments.apparent_wind.speed.toFixed(1)} nds</div>
 {/if}
+
+
+<div class="title"><strong>Énergie et Voile</strong></div>
 {#if Number.isFinite(instruments.energy)}
-    <div><strong>Énergie :</strong> {instruments.energy}</div>
+    <div class="marge">{instruments.energy}% de <strong>stamina</strong> {@html STAMINA_EMOTICON[Math.min(Math.max(instruments.energy, 0), 9)]}</div>
 {/if}
 {#if Number.isInteger(instruments.sail)}
-    <div><strong>Voile :</strong> {@html SAIL_NAMES[instruments.sail]}</div>
+    <div class="marge"><strong>Voile :</strong> {@html SAIL_NAMES[instruments.sail]}</div>
 {/if}
+
+<style>
+
+    .title {
+        margin-top: 16px;
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 4px;
+        text-decoration-line: underline;
+        text-decoration-color: #ffffff;
+        text-decoration-style: solid; /*wavy;*/
+        text-decoration-thickness: 2px;
+        text-underline-offset: 4px;
+    }
+
+    .marge {
+        margin-left: 10px;
+    }
+</style>

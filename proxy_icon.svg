@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <title>ITYC NMEA proxy</title>
+  <rect width="256" height="256" rx="48" fill="#0b2a4a"/>
+  <path d="M128 36 L128 150 L68 150 Z" fill="#ffffff"/>
+  <path d="M136 56 L136 150 L184 150 Z" fill="#ffb000"/>
+  <path d="M56 160 H200 L178 192 H78 Z" fill="#e53935"/>
+  <path d="M30 214 q24 -22 49 0 t49 0 t49 0 t49 0" fill="none" stroke="#00a8ff" stroke-width="10" stroke-linecap="round"/>
+  <g fill="none" stroke="#00a8ff" stroke-width="8" stroke-linecap="round">
+    <path d="M168 40 q22 10 22 32"/>
+    <path d="M168 24 q38 16 38 48"/>
+  </g>
+</svg>

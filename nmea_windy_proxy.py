@@ -70,7 +70,7 @@ def parse_nmea_position(message):
         fields = sentence.split("*", 1)[0].split(",")
         if len(fields) < 10 or fields[0] != "$GPRMC" or fields[2] != "A":
             if fields[0].startswith("$II"):
-                logging.info("Received: %s", sentence)
+                # logging.info("Received: %s", sentence)
                 return None
             return None
 

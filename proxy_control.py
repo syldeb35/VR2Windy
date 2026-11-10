@@ -60,7 +60,7 @@ class ProxyControlWindow:
         self.stop_action = None
         self.stop_deadline = None
         self.force_stopped = False
-
+        
         root.title("VR2Windy - Contrôle du proxy")
         root.minsize(480, 300)
         root.protocol("WM_DELETE_WINDOW", self.close)
@@ -193,7 +193,10 @@ class ProxyControlWindow:
 
 
 def main():
-    root = tk.Tk()
+    root = tk.Tk(className="VR2Windy Proxy")
+    chemin_icone = Path(__file__).resolve().with_name("proxy_icon.png")
+    icone = tk.PhotoImage(file=str(chemin_icone))
+    root.iconphoto(False, icone)
     ProxyControlWindow(root)
     root.mainloop()
 

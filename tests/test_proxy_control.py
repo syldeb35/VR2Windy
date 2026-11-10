@@ -5,8 +5,9 @@ import socket
 import time
 import tkinter as tk
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
+import proxy_control
 from proxy_control import ProxyControlWindow, ProxyProcess
 
 
@@ -96,6 +97,14 @@ class ProxyProcessTests(unittest.TestCase):
 
 
 class ProxyControlWindowTests(unittest.TestCase):
+    def test_main_sets_application_class(self):
+        with patch.object(proxy_control.tk, "Tk") as tk_constructor, \
+                patch.object(proxy_control, "ProxyControlWindow") as window:
+            proxy_control.main()
+            tk_constructor.assert_called_once_with(className="VR2Windy Proxy")
+            window.assert_called_once_with(tk_constructor.return_value)
+            tk_constructor.return_value.mainloop.assert_called_once()
+
     def setUp(self):
         self.window = ProxyControlWindow.__new__(ProxyControlWindow)
         self.window.root = Mock()

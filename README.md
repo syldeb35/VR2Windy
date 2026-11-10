@@ -35,6 +35,20 @@ a copy of NMEA output to the dedicated Windy proxy on port `8085`.
    Alternatively, run `python3 nmea_windy_proxy.py` in a terminal and stop it
    with `Ctrl+C`. By default, the proxy listens only on `127.0.0.1:8085`.
 
+   On Linux with GNOME, install a per-user application launcher so GNOME can
+   associate the window with the proxy icon in the Dash and taskbar:
+
+   ```sh
+   python3 scripts/install_proxy_launcher.py
+   ```
+
+   Close the controller and start **VR2Windy Proxy** from the applications
+   menu. You can then pin it to the Dash. The launcher points to this project
+   directory and uses `proxy_icon.png`; rerun the installer if you move the
+   project or change your Python installation. It writes
+   `vr2windy-proxy.desktop` under `$XDG_DATA_HOME/applications`, or under
+   `~/.local/share/applications` when `XDG_DATA_HOME` is unset.
+
 2. Open Virtual Regatta and the ITYC Dashboard. Select a race and enable
    **NMEA output**. Keep the dashboard's normal NMEA port configured for your
    existing client; the dashboard also sends a copy to port `8085` for
