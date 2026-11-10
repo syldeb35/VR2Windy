@@ -513,15 +513,17 @@
     }
 
     function createHourlyWaypointMarker({ label, waypoint }, routeName, routeColor) {
+        const isArrival = label === 'Arrivée';
+        const markerWidth = isArrival ? 64 : 44;
         const marker = L.marker([waypoint.lat, waypoint.lon], {
             icon: L.divIcon({
                 className: 'ityc-hour-waypoint',
-                html: `<span class="ityc-hour-waypoint__label" style="background-color: ${routeColor}">${label}</span>`,
-                iconSize: [44, 26],
-                iconAnchor: [22, 13],
+                html: `<span class="ityc-hour-waypoint__label${isArrival ? ' ityc-hour-waypoint__label--arrival' : ''}" style="background-color: ${routeColor}">${label}</span>`,
+                iconSize: [markerWidth, 26],
+                iconAnchor: [markerWidth / 2, 13],
             }),
         });
-        const waypointTime = new Date(waypoint.timestamp).toLocaleString();
+        const waypointTime = waypoint.timestamp === null ? '' : new Date(waypoint.timestamp).toLocaleString();
         const waypointName = waypoint.name ? `<br>${escapeHtml(waypoint.name)}` : '';
         const { cog, sog, twa, sail } = waypoint.details;
         const detailLines = [
@@ -530,7 +532,7 @@
             twa && `<strong>TWA :</strong> ${escapeHtml(formatTwa(twa))}`,
             sail && `<strong>SAIL :</strong> ${escapeHtml(sail)}`,
         ].filter(Boolean).map(line => `<br>${line}`).join('');
-        const content = `<strong>${label}</strong>${waypointName}<br>${escapeHtml(waypointTime)}${detailLines}`;
+        const content = `<strong>${escapeHtml(label)}</strong>${waypointName}${waypointTime ? `<br>${escapeHtml(waypointTime)}` : ''}${detailLines}`;
         const popup = L.popup({
             autoClose: false,
             closeOnClick: false,
@@ -538,7 +540,7 @@
         }).setLatLng(marker.getLatLng()).setContent(content);
         marker.on('mouseover', () => popup.openOn(map));
         marker.on('mouseout', () => map.closePopup(popup));
-        marker.on('click', () => {
+        if (waypoint.timestamp !== null) marker.on('click', () => {
             try {
                 const myTimestamp = Math.round(waypoint.timestamp/3600/1000)*3600*1000;
                 console.log('Setting timestamp to', new Date(myTimestamp).toLocaleString());
@@ -551,7 +553,7 @@
         return { layer: marker, popup };
     }
 
-    function createRouteItems(segments, hourlyWaypoints, color, name) {
+    function createRouteItems(segments, hourlyWaypoints, arrival, color, name) {
         return [
             ...segments.map(segment => ({
                 layer: L.polyline(segment, {
@@ -560,8 +562,13 @@
                     opacity: 0.9,
                 }),
             })),
-            ...hourlyWaypoints.map(({ label, waypoint }) =>
-                createHourlyWaypointMarker({ label, waypoint }, name, color)),
+            ...hourlyWaypoints.map(({ label, waypoint }) => createHourlyWaypointMarker({
+                label: waypoint === arrival ? 'Arrivée' : label,
+                waypoint,
+            }, name, color)),
+            ...(arrival && !hourlyWaypoints.some(({ waypoint }) => waypoint === arrival)
+                ? [createHourlyWaypointMarker({ label: 'Arrivée', waypoint: arrival }, name, color)]
+                : []),
         ];
     }
 
@@ -583,15 +590,16 @@
                     throw new Error('Le fichier dépasse la taille maximale de 25 Mo.');
                 }
 
-                const { segments, waypoints , routeName} = parseGpxRoute(await file.text());
+                const { segments, waypoints, routeName } = parseGpxRoute(await file.text());
                 const fileDate = file.lastModified ? new Date(file.lastModified).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '';
                 console.log('File date:', fileDate);
                 const name = routeName.split(" ")[0] + (fileDate ? ` ${fileDate}` : '') || file.name;
                 //const name = file.name;
                 const hourlyWaypoints = getMarkerWaypoints(waypoints);
+                const arrival = waypoints[waypoints.length - 1] || null;
                 const usedColors = new Set(routes.map(route => route.color));
                 const color = ROUTE_COLORS.find(candidate => !usedColors.has(candidate));
-                const items = createRouteItems(segments, hourlyWaypoints, color, name);
+                const items = createRouteItems(segments, hourlyWaypoints, arrival, color, name);
                 const bounds = L.featureGroup(items.map(item => item.layer)).getBounds();
 
                 if (!bounds.isValid()) {
@@ -603,6 +611,7 @@
                     id: nextRouteId++,
                     name: name,
                     color,
+                    arrival,
                     items,
                 }];
                 boundsLayers.push(...items.map(item => item.layer));
@@ -1071,6 +1080,10 @@
         justify-content: center;
         white-space: nowrap;
         width: 40px;
+    }
+
+    :global(.ityc-hour-waypoint__label--arrival) {
+        width: 60px;
     }
     footer {
         margin-top: 16px;

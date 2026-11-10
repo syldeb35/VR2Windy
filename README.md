@@ -76,9 +76,10 @@ a copy of NMEA output to the dedicated Windy proxy on port `8085`.
    updated or the proxy restarts.
 
 6. To compare routes, import up to four `.gpx` files. Each route can be
-   removed independently. For GPX files with timestamps, the plugin marks
-   selected forecast waypoints; click a marker to move Windy's timeline to the
-   recorded time.
+   removed independently. The last waypoint is marked as the arrival and
+   displays its available details in a tooltip, like the forecast waypoints.
+   For GPX files with timestamps, click a waypoint marker to move Windy's
+   timeline to the recorded time.
 
 The plugin selects GFS when it loads. You can choose a different forecast
 model in Windy. Model update and reference times are read from Windy's
