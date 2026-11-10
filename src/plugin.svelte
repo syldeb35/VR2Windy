@@ -12,12 +12,14 @@
     <button class="button" on:click={saveSettings}>Suivre cette course</button>
 
     {#if !latestPosition}
-    <p class="status" role="status" aria-live="polite">{status}</p>
+        <p class="status" role="status" aria-live="polite">{status}</p>
     {/if}
     <p class="title">Routages </p>
-    <label for="gpx-file-input">
-        (4 fichiers GPX maximum)
-    </label>
+    {#if !(routeStatus === '')}
+        <label for="gpx-file-input">
+            (4 fichiers GPX maximum)
+        </label>
+    {/if}
         <input
             type="file"
             id="gpx-file-input"
@@ -138,7 +140,7 @@
     let fleetCount = 0;
     let routes = [];
     let nextRouteId = 0;
-    let routeStatus = 'Sélectionne un ou plusieurs fichiers GPX pour afficher les routages.';
+    let routeStatus = 'Sélectionner un ou plusieurs fichiers GPX pour afficher les routages.';
     let pollTimer;
     let nextPollIntervalMs = POLL_INTERVAL_MS;
     let activeRequest;
