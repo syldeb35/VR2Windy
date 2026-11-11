@@ -14,7 +14,7 @@ const messages = {
         aisCompetitors: 'AIS competitors:',
         competitorsShown: '{count} competitors displayed.',
         competitorShown: '{count} competitor displayed.',
-        latestPosition: 'At {date}, {time}:',
+        latestPosition: '{date} at {time}:',
         centerOnBoat: 'Center map on boat',
         modelUpdated: 'Model updated {age} ago (ref {hour}Z)',
         lessThanMinute: 'less than a minute',

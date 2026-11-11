@@ -48,7 +48,7 @@
 
 <div class="title"><strong>{t('energyAndSails')}</strong></div>
 {#if Number.isFinite(instruments.energy)}
-    <div class="marge"><strong>{t('energy')} :</strong> {instruments.energy}% <strong>{t('stamina')}</strong> {@html STAMINA_EMOTICON[Math.min(Math.max(instruments.energy, 0), 9)]}</div>
+    <div class="marge"><strong>{t('energy')} :</strong> {instruments.energy}% <strong>{t('stamina')}</strong> {@html STAMINA_EMOTICON[(instruments.energy/10).toFixed(0)]}</div>
 {/if}
 {#if Number.isInteger(instruments.sail)}
     <div class="marge"><strong>{t('sail')} :</strong> {@html SAIL_NAMES[instruments.sail]}</div>
