@@ -66,7 +66,9 @@ a copy of NMEA output to the dedicated Windy proxy on port `8085`.
    certificate warning as needed.
 
 5. In VR2Windy, enter the numeric race ID (without the stage number), keep port
-   `8085` selected, and click **Follow this race**. The map marker and
+   `8085` selected, and click **Follow this race** (or **Suivre cette course**
+   when the browser language is French). The plugin language follows the
+   browser language, using English by default. The map marker and
    coordinates update as NMEA positions arrive. A vector shows the distance
    traveled in one hour at the current COG/SOG. When available, the plugin
    also shows true wind (IIMWV, reference `T`), apparent wind (IIVWR, including

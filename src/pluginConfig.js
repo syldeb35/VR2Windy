@@ -3,7 +3,7 @@ const config = {
     version: '0.1.0',
     title: 'VR2Windy',
     icon: '⛵',
-    description: 'Affiche sur Windy la dernière position de votre bateau Virtual Regatta.',
+    description: 'Displays the latest position of your Virtual Regatta boat on Windy.',
     author: 'ITYC Dashboard',
     desktopUI: 'rhpane',
     mobileUI: 'small',

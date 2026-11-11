@@ -3,21 +3,21 @@
 <section class="plugin__content">
   <div class="plugin__title plugin__title--chevron-back" role="button" tabindex="0" on:click={openWindyMenu} on:keydown={handleTitleKeydown}>{title}</div>
 
-    <p class="title">Identifiant de la course</p>
+    <p class="title">{t('raceIdTitle')}</p>
     <label>
         ID:
-        <input name="race-id" bind:value={raceInput} inputmode="numeric" placeholder="Ex. 845" />
+        <input name="race-id" bind:value={raceInput} inputmode="numeric" placeholder={t('raceIdPlaceholder')} />
     </label>
 
-    <button class="button" on:click={saveSettings}>Suivre cette course</button>
+    <button class="button" on:click={saveSettings}>{t('followRace')}</button>
 
     {#if !latestPosition}
         <p class="status" role="status" aria-live="polite">{status}</p>
     {/if}
-    <p class="title">Routages </p>
+    <p class="title">{t('routes')}</p>
     {#if !routes.length}
         <label for="gpx-file-input">
-            (4 fichiers GPX maximum)
+            {t('maxGpxFiles')}
         </label>
     {/if}
         <input
@@ -33,23 +33,23 @@
         <div class="route-info">
             <span class="route-color" style={`background-color: ${route.color}`}></span>
             <span class:route-hidden={route.hidden}>{route.name}</span>
-            <button class="route-button route-button-first" on:click={() => toggleRouteVisibility(route.id)} aria-label={`${route.hidden ? 'Afficher' : 'Masquer'} le routage ${route.name}`} title={route.hidden ? 'Afficher' : 'Masquer'}>{route.hidden ? '◌' : '👁'}</button>
-            <button class="route-button" on:click={() => removeRoute(route.id)} aria-label={`Retirer le routage ${route.name}`} title="Retirer">×</button>
+            <button class="route-button route-button-first" on:click={() => toggleRouteVisibility(route.id)} aria-label={t(route.hidden ? 'showRoute' : 'hideRoute', { name: route.name })} title={t(route.hidden ? 'showRoute' : 'hideRoute', { name: route.name })}>{route.hidden ? '◌' : '👁'}</button>
+            <button class="route-button" on:click={() => removeRoute(route.id)} aria-label={t('removeRoute', { name: route.name })} title={t('remove')}>×</button>
         </div>
     {/each}
     <p class="route-status" role="status" aria-live="polite">{routeStatus}</p>
 
     {#if fleetCount > 1}
         <p class="title">
-            Concurrents AIS :
+            {t('aisCompetitors')}
         </p>
-        <p class="route-status">{fleetCount} concurrents affichés.</p>
+        <p class="route-status">{t('competitorsShown', { count: fleetCount })}</p>
     {:else if fleetCount === 1}
-        <p class="route-status">{fleetCount} concurrent affiché.</p>
+        <p class="route-status">{t('competitorShown', { count: fleetCount })}</p>
     {/if}
     {#if latestPosition}
             <p class="title">
-                Le {latestDate} à {latestHour} :
+                {t('latestPosition', { date: latestDate, time: latestHour })}
             </p>
 
         <div class="position">
@@ -57,16 +57,15 @@
                 {formatCoordinate(latestPosition.lat, 'N', 'S')} -
                 {formatCoordinate(latestPosition.lon, 'E', 'W')}
             </div>
-            <BoatMeasurements position={latestPosition} />
+            <BoatMeasurements position={latestPosition} language={language} />
         </div>
-        <button class="button" on:click={centerOnBoat}>Centrer la carte sur le bateau</button>
+        <button class="button" on:click={centerOnBoat}>{t('centerOnBoat')}</button>
     {/if}
     <p></p>
     <footer class="footer">
         {#if weatherMetadata}
         <div class="route-status" role="status">
-            Modèle mis à jour il y a {formatUpdateAge(weatherMetadata.updateTimestamp)}
-            (ref {weatherMetadata.referenceHour}Z)
+            {t('modelUpdated', { age: formatUpdateAge(weatherMetadata.updateTimestamp), hour: weatherMetadata.referenceHour })}
         </div>
         {:else if weatherMetadataError}
             <div style="font-size: 12px;">{weatherMetadataError}</div>
@@ -81,9 +80,13 @@
     import { onDestroy, onMount } from 'svelte';
 
     import BoatMeasurements from './BoatMeasurements.svelte';
+    import { getLanguage, translate } from './i18n.js';
     import config from './pluginConfig';
 
     const { title } = config;
+    const language = getLanguage();
+    const t = (key, values) => translate(key, values, language);
+    const dateLocale = language === 'fr' ? 'fr-FR' : 'en-US';
     const POLL_INTERVAL_MS = 1500;
     const MAX_POLL_INTERVAL_MS = 30000;
     const WEATHER_METADATA_POLL_INTERVAL_MS = 5 * 60 * 1000;
@@ -127,7 +130,7 @@
 
     let raceId = '';
     let raceInput = '';
-    let status = 'Saisis l’identifiant de la course puis active NMEA output dans ITYC.';
+    let status = t('enterRaceId');
     let latestPosition = null;
     let latestDate = null;
     let latestHour = null;
@@ -140,7 +143,7 @@
     let fleetCount = 0;
     let routes = [];
     let nextRouteId = 0;
-    let routeStatus = 'Sélectionner un ou plusieurs fichiers GPX pour afficher les routages.';
+    let routeStatus = t('routeStatusInitial');
     let pollTimer;
     let nextPollIntervalMs = POLL_INTERVAL_MS;
     let activeRequest;
@@ -158,11 +161,13 @@
     function formatUpdateAge(timestamp) {
         const elapsedMinutes = Math.max(0, Math.floor((Date.now() - timestamp) / 60000));
         if (elapsedMinutes < 60) {
-            return elapsedMinutes === 0 ? 'moins d’une minute' : `${elapsedMinutes} min`;
+            return elapsedMinutes === 0
+                ? t('lessThanMinute')
+                : t('minutes', { count: elapsedMinutes });
         }
         const elapsedHours = Math.floor(elapsedMinutes / 60);
-        if (elapsedHours < 24) return `${elapsedHours} h`;
-        return `${Math.floor(elapsedHours / 24)} j`;
+        if (elapsedHours < 24) return t('hours', { count: elapsedHours });
+        return t('days', { count: Math.floor(elapsedHours / 24) });
     }
 
     async function updateWeatherMetadata() {
@@ -175,14 +180,14 @@
         }
         if (typeof product !== 'string' || product.length === 0) {
             weatherMetadata = null;
-            weatherMetadataError = 'Modèle météo Windy non disponible.';
+            weatherMetadataError = t('weatherModelUnavailable');
             return;
         }
 
         const modelId = WINDY_METADATA_MODEL_IDS[product] || product;
         if (!/^[\w-]+$/.test(modelId)) {
             weatherMetadata = null;
-            weatherMetadataError = `Identifiant de modèle Windy invalide : ${product}.`;
+            weatherMetadataError = t('invalidWeatherModel', { product });
             return;
         }
 
@@ -203,7 +208,7 @@
             const updateTimestamp = Date.parse(metadata.update);
             const referenceTimestamp = Date.parse(metadata.ref);
             if (!Number.isFinite(updateTimestamp) || !Number.isFinite(referenceTimestamp)) {
-                throw new Error('Horodatages absents ou invalides dans le manifeste.');
+                throw new Error(t('invalidMetadataTimestamps'));
             }
             if (weatherMetadataRequest !== request) return;
 
@@ -214,7 +219,7 @@
         } catch (error) {
             if (!request.signal.aborted && weatherMetadataRequest === request) {
                 weatherMetadata = null;
-                weatherMetadataError = `Mise à jour météo Windy indisponible pour ${product} : ${error.message}`;
+                weatherMetadataError = t('weatherUpdateUnavailable', { product, error: error.message });
             }
         } finally {
             if (weatherMetadataRequest === request) weatherMetadataRequest = null;
@@ -258,8 +263,8 @@
             if (!Number.isFinite(boat.lat) || !Number.isFinite(boat.lon)) return;
             const key = String(boat.name || boat.mmsi || `${boat.lat},${boat.lon}`);
             seen.add(key);
-            const label = escapeHtml(boat.name || 'Concurrent');
-            const popup = `<strong>${label}</strong><br>${formatCoordinate(boat.lat, 'N', 'S')} - ${formatCoordinate(boat.lon, 'E', 'W')}<br>HDG ${Number(boat.heading).toFixed(0)}° - ${Number(boat.speed).toFixed(1)} nds`;
+            const label = escapeHtml(boat.name || t('competitor'));
+            const popup = `<strong>${label}</strong><br>${formatCoordinate(boat.lat, 'N', 'S')} - ${formatCoordinate(boat.lon, 'E', 'W')}<br>HDG ${Number(boat.heading).toFixed(0)}° - ${Number(boat.speed).toFixed(1)} ${t('knots')}`;
             const existing = fleetMarkers.get(key);
             if (existing) {
                 existing.setLatLng([boat.lat, boat.lon]).setPopupContent(popup);
@@ -379,7 +384,7 @@
         if (latitude === null || longitude === null || latitude.trim() === '' || longitude.trim() === '' ||
             !Number.isFinite(lat) || lat < -90 || lat > 90 ||
             !Number.isFinite(lon) || lon < -180 || lon > 180) {
-            throw new Error('Le fichier contient un point avec des coordonnées invalides.');
+            throw new Error(t('invalidCoordinates'));
         }
         return [lat, lon];
     }
@@ -410,9 +415,12 @@
     function formatTwa(twa) {
         const angle = Number.parseFloat(twa.replace(',', '.'));
         if (!Number.isFinite(angle)) return twa;
-        const side = angle > 180 ? ' Bd' : ' Td';
+        const side = angle > 180
+            ? (language === 'fr' ? ' Bd' : ' port')
+            : (language === 'fr' ? ' Td' : ' starboard');
         const value = angle > 180 ? 360 - angle : angle;
-        return `${value.toFixed(2).replace('.', ',')}°${side}`;
+        const formattedValue = value.toFixed(2).replace('.', language === 'fr' ? ',' : '.');
+        return `${formattedValue}°${side}`;
     }
 
     function escapeHtml(value) {
@@ -427,7 +435,7 @@
 
     function parseGpxRoute(xmlText) {
         if (/<!DOCTYPE/i.test(xmlText)) {
-            throw new Error('Les déclarations DOCTYPE ne sont pas acceptées dans les fichiers GPX.');
+            throw new Error(t('doctypeNotAllowed'));
         }
 
         const document = new DOMParser().parseFromString(xmlText, 'application/xml');
@@ -435,14 +443,14 @@
             document.getElementsByTagName('parsererror').length > 0 ||
             document.documentElement.localName !== 'gpx'
         ) {
-            throw new Error('Le fichier sélectionné ne contient pas un GPX valide.');
+            throw new Error(t('invalidGpx'));
         }
 
         const waypoints = Array.from(document.getElementsByTagNameNS('*', 'wpt'))
             .map(readGpxWaypoint);
         const metadata = getDirectChildren(document.documentElement, 'metadata')[0];
         console.log('Metadata:', metadata);
-        const routeName = metadata ? (getDirectChildText(metadata, 'name') || (metadata ? getDirectChildText(metadata, 'link') : 'Unnamed')) : 'Unnamed';
+        const routeName = metadata ? (getDirectChildText(metadata, 'name') || getDirectChildText(metadata, 'link') || t('unnamedRoute')) : t('unnamedRoute');
 
         console.log('Route name:', routeName);
         const segments = [];
@@ -465,7 +473,7 @@
         }
 
         if (segments.length === 0) {
-            throw new Error('Aucun tracé, itinéraire ou groupe de waypoints GPX avec au moins deux points.');
+            throw new Error(t('noRouteData'));
         }
         return { segments, waypoints, routeName };
     }
@@ -515,7 +523,7 @@
     }
 
     function createHourlyWaypointMarker({ label, waypoint }, routeName, routeColor) {
-        const isArrival = label === 'Arrivée';
+        const isArrival = label === t('arrival');
         const markerWidth = isArrival ? 64 : 44;
         const marker = L.marker([waypoint.lat, waypoint.lon], {
             icon: L.divIcon({
@@ -525,7 +533,7 @@
                 iconAnchor: [markerWidth / 2, 13],
             }),
         });
-        const waypointTime = waypoint.timestamp === null ? '' : new Date(waypoint.timestamp).toLocaleString();
+        const waypointTime = waypoint.timestamp === null ? '' : new Date(waypoint.timestamp).toLocaleString(dateLocale);
         const waypointName = waypoint.name ? `<br>${escapeHtml(waypoint.name)}` : '';
         const { cog, sog, twa, sail } = waypoint.details;
         const detailLines = [
@@ -547,9 +555,8 @@
                 const myTimestamp = Math.round(waypoint.timestamp/3600/1000)*3600*1000;
                 console.log('Setting timestamp to', new Date(myTimestamp).toLocaleString());
                 store.set('timestamp', myTimestamp);
-                // routeStatus = `Timeline Windy positionnée sur ${label} (${routeName}) : ${waypointTime}.`;
             } catch (error) {
-                routeStatus = `Impossible de régler la timeline Windy : ${error.message}`;
+                routeStatus = t('timelineError', { error: error.message });
             }
         });
         return { layer: marker, popup };
@@ -565,11 +572,11 @@
                 }),
             })),
             ...hourlyWaypoints.map(({ label, waypoint }) => createHourlyWaypointMarker({
-                label: waypoint === arrival ? 'Arrivée' : label,
+                label: waypoint === arrival ? t('arrival') : label,
                 waypoint,
             }, name, color)),
             ...(arrival && !hourlyWaypoints.some(({ waypoint }) => waypoint === arrival)
-                ? [createHourlyWaypointMarker({ label: 'Arrivée', waypoint: arrival }, name, color)]
+                ? [createHourlyWaypointMarker({ label: t('arrival'), waypoint: arrival }, name, color)]
                 : []),
         ];
     }
@@ -589,11 +596,11 @@
         for (const file of filesToImport) {
             try {
                 if (file.size > 25 * 1024 * 1024) {
-                    throw new Error('Le fichier dépasse la taille maximale de 25 Mo.');
+                    throw new Error(t('fileTooLarge'));
                 }
 
                 const { segments, waypoints, routeName } = parseGpxRoute(await file.text());
-                const fileDate = file.lastModified ? new Date(file.lastModified).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '';
+                const fileDate = file.lastModified ? new Date(file.lastModified).toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' }) : '';
                 console.log('File date:', fileDate);
                 const name = routeName.split(" ")[0] + (fileDate ? ` ${fileDate}` : '') || file.name;
                 //const name = file.name;
@@ -605,7 +612,7 @@
                 const bounds = L.featureGroup(items.map(item => item.layer)).getBounds();
 
                 if (!bounds.isValid()) {
-                    throw new Error('Aucun point exploitable dans ce fichier GPX.');
+                    throw new Error(t('noUsablePoints'));
                 }
 
                 items.forEach(item => item.layer.addTo(map));
@@ -618,7 +625,7 @@
                 }];
                 boundsLayers.push(...items.map(item => item.layer));
                 const pointCount = segments.reduce((total, segment) => total + segment.length, 0);
-                results.push(`${file.name} (${pointCount} points${hourlyWaypoints.length ? `, ${hourlyWaypoints.length} marqueurs horaires` : ''})`);
+                results.push(`${file.name} (${t('points', { count: pointCount })}${hourlyWaypoints.length ? `, ${t('hourlyMarkers', { count: hourlyWaypoints.length })}` : ''})`);
             } catch (error) {
                 errors.push(`${file.name} : ${error.message}`);
             }
@@ -630,11 +637,11 @@
         }
 
         if (selectedFiles.length > availableSlots) {
-            errors.push(`Limite de ${MAX_ROUTES} routages : seuls ${availableSlots} fichier(s) supplémentaire(s) ont été pris en compte.`);
+            errors.push(t('routeLimit', { max: MAX_ROUTES, available: availableSlots }));
         }
         routeStatus = [
                 results.length > 0 ? `` : '',
-                errors.length > 0 ? `Import non effectué : ${errors.join(' ')}` : '',
+                errors.length > 0 ? t('importFailed', { errors: errors.join(' ') }) : '',
             ].filter(Boolean).join(' ');
 
         if (store.get('product') !== DEFAULT_WEATHER_PRODUCT) {
@@ -694,14 +701,14 @@
     function saveSettings() {
         const selectedRace = raceInput.trim();
         if (!/^\d{1,5}$/.test(selectedRace)) {
-            status = 'Identifiant de course invalide : saisis uniquement des chiffres.';
+            status = t('invalidRaceId');
             return;
         }
 
         try {
             localStorage.setItem('ityc-windy-race-id', selectedRace);
         } catch (error) {
-            status = `Impossible d’enregistrer la configuration : ${error.message}`;
+            status = t('saveSettingsError', { error: error.message });
             return;
         }
 
@@ -713,7 +720,7 @@
         clearMapFeatures();
         configured = true;
         configurationError = false;
-        status = 'Connexion au proxy ITYC…';
+        status = t('connectingProxy');
         pollPosition();
     }
 
@@ -739,7 +746,7 @@
     function displayPosition(position) {
         const latLng = [position.lat, position.lon];
         const coordinates = `${formatCoordinate(position.lat, 'N', 'S')} - ${formatCoordinate(position.lon, 'E', 'W')}`;
-        const popup = `<strong>Position du bateau ITYC</strong><br>${coordinates}<br>${new Date(position.timestamp).toLocaleString()}`;
+        const popup = `<strong>${t('boatPosition')}</strong><br>${coordinates}<br>${new Date(position.timestamp).toLocaleString(dateLocale)}`;
 
         boatPopupContent = popup;
         if (!boatMarker) {
@@ -796,7 +803,7 @@
         if (!mounted) return;
         if (!configured) {
             if (!configurationError) {
-                status = 'Saisis l’identifiant de la course puis active NMEA output dans ITYC.';
+                status = t('enterRaceId');
             }
             return;
         }
@@ -814,7 +821,7 @@
                 },
             );
             if (response.status === 404) {
-                status = `Aucune position pour la course ${raceId}. Vérifie l’ID et l’option NMEA output.`;
+                status = t('noPosition', { raceId });
                 nextPollIntervalMs = Math.min(
                     Math.max(nextPollIntervalMs * 2, 5000),
                     MAX_POLL_INTERVAL_MS,
@@ -822,12 +829,12 @@
                 return;
             }
             if (!response.ok) {
-                throw new Error(`Le proxy a répondu HTTP ${response.status}.`);
+                throw new Error(t('proxyResponse', { status: response.status }));
             }
 
             const position = await response.json();
             if (!isValidPosition(position)) {
-                throw new Error('La réponse du proxy ne contient pas une position valide.');
+                throw new Error(t('invalidPosition'));
             }
             if  (!latestPosition) {
                 centerChart(position);
@@ -838,13 +845,13 @@
             latestPosition = position;
             displayPosition(position);
             nextPollIntervalMs = POLL_INTERVAL_MS;
-            latestDate = `${new Date(position.timestamp).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}`;
-            latestHour = `${new Date(position.timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`;
+            latestDate = `${new Date(position.timestamp).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short', year: 'numeric' })}`;
+            latestHour = `${new Date(position.timestamp).toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' })}`;
 
 
         } catch (error) {
             if (!request.signal.aborted) {
-                status = `Accès au proxy local refusé ou indisponible : ${error.message} Vérifie l’autorisation d’accès au réseau local pour Windy et le proxy sur le port ${PROXY_PORT}.`;
+                status = t('proxyUnavailable', { error: error.message, port: PROXY_PORT });
                 nextPollIntervalMs = Math.min(nextPollIntervalMs * 2, MAX_POLL_INTERVAL_MS);
             }
         } finally {
@@ -886,7 +893,7 @@
             }
         } catch (error) {
             configurationError = true;
-            status = `Impossible de lire la configuration enregistrée : ${error.message}`;
+            status = t('readSettingsError', { error: error.message });
         }
 
         pollPosition();
