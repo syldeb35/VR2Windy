@@ -984,7 +984,7 @@
         margin-left: 10px;
         font-size: 13px;
         font-weight: bold;
-        margin-bottom: 8px;
+        margin-bottom: 0;
     }
 
     .route-info,
