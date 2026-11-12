@@ -98,13 +98,13 @@ def parse_nmea_position(message):
 
 
 def parse_instrument_sentence(message):
-    if not message.strip().startswith((b"$IIMWV", b"$IIVWR", b"$IIHDT", b"$IIRPM", b"$IIOPT")):
+    if not message.strip().startswith((b"$IIMWV", b"$IIVWR", b"$IIHDT", b"$IIRPM", b"$IIOPT", b"$IITTM")):
         return None
     try:
         sentence = message.decode("ascii").strip()
         fields = sentence.split("*", 1)[0].split(",")
         kind = fields[0]
-        if kind not in ("$IIMWV", "$IIVWR", "$IIHDT", "$IIRPM", "$IIOPT"):
+        if kind not in ("$IIMWV", "$IIVWR", "$IIHDT", "$IIRPM", "$IIOPT", "$IITTM"):
             return None
 
         if "*" in sentence:
@@ -147,10 +147,11 @@ def parse_instrument_sentence(message):
         if kind == "$IIOPT":
             if len(fields) < 3:
                 raise ValueError("expected valid option sentence")
-            # return {"option": list(fields[2:13])}
+        if kind == "$IITTM":
+            if len(fields) < 3:
+                raise ValueError("expected valid option sentence")
             return {
-                f"option[{i}]": val 
-                for i, val in enumerate(fields[2:13], start=1)
+                "distanceToEnd": number(fields[2], 0)
             }
     except (UnicodeDecodeError, ValueError) as error:
         logging.warning("Invalid instrument sentence: %s", error)

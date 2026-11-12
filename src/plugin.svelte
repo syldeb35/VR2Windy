@@ -1013,9 +1013,10 @@
     }
 
     .route-button {
-        font-size: 16px;
+        font-size: 8px;
         padding: 0;
-        width: 28px;
+        width: 16px;
+        height: 16px;
     }
 
     .route-button-first {

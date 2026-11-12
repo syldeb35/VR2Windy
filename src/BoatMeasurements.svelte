@@ -25,7 +25,9 @@
     STAMINA_EMOTICON = ["😫", "😫", "😳", "😒", "😴", "😐", "🙂", "😊", "😀", "😁", "🤩"];
     $: instruments = position.instruments || {};
 </script>
-
+{#if instruments.distanceToEnd !== undefined && Number.isFinite(instruments.distanceToEnd)}
+    <div class="marge"><strong>{t('remainingDistance')} :</strong> {instruments.distanceToEnd.toFixed(1)} NM</div>
+{/if}
 {#if position.heading !== null}
     <div class="marge"><strong>COG :</strong> {position.heading.toFixed(1)}°</div>
 {/if}

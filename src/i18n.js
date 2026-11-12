@@ -59,6 +59,7 @@ const messages = {
         foiling: 'Foiling',
         wind: 'Wind',
         knots: 'kn',
+        remainingDistance: 'Remain',
     },
     fr: {
         raceIdTitle: 'Identifiant de la course',
@@ -120,6 +121,7 @@ const messages = {
         foiling: 'Foiling',
         wind: 'Vent',
         knots: 'nds',
+        remainingDistance: 'Reste',
     },
 };
 
