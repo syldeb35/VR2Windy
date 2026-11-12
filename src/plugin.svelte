@@ -1,4 +1,3 @@
-<svelte:window on:keydown={handleWindowKeydown} />
 <div class="plugin__mobile-header">{title}</div>
 <section class="plugin__content">
   <div class="plugin__title plugin__title--chevron-back" role="button" tabindex="0" on:click={openWindyMenu} on:keydown={handleTitleKeydown}>{title}</div>
@@ -231,23 +230,6 @@
             event.preventDefault();
             openWindyMenu();
         }
-    }
-
-    function activeDialog() {
-        if (visualOpen) return visualDialog;
-        if (analysisOpen) return analysisDialog;
-        return null;
-    }
-
-    function handleWindowKeydown(event) {
-        const dialog = activeDialog();
-        if (!dialog) return;
-        if (event.key === 'Escape') {
-            event.preventDefault();
-            if (visualOpen) closeVisual(); else closeAnalysis();
-            return;
-        }
-        trapFocus(event, dialog, typeof document !== 'undefined' ? document.activeElement : null);
     }
 
 
