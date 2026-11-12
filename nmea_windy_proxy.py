@@ -98,13 +98,13 @@ def parse_nmea_position(message):
 
 
 def parse_instrument_sentence(message):
-    if not message.strip().startswith((b"$IIMWV", b"$IIVWR", b"$IIHDT", b"$IIRPM")):
+    if not message.strip().startswith((b"$IIMWV", b"$IIVWR", b"$IIHDT", b"$IIRPM", b"$IIOPT")):
         return None
     try:
         sentence = message.decode("ascii").strip()
         fields = sentence.split("*", 1)[0].split(",")
         kind = fields[0]
-        if kind not in ("$IIMWV", "$IIVWR", "$IIHDT", "$IIRPM"):
+        if kind not in ("$IIMWV", "$IIVWR", "$IIHDT", "$IIRPM", "$IIOPT"):
             return None
 
         if "*" in sentence:
@@ -144,6 +144,14 @@ def parse_instrument_sentence(message):
             if len(fields) < 6 or fields[1] != "E" or fields[5] != "A" or not fields[2].isdigit():
                 raise ValueError("expected valid ITYC energy and sail")
             return {"sail": int(fields[2]), "energy": number(fields[3], 0), "foil": number(fields[4], 0)}
+        if kind == "$IIOPT":
+            if len(fields) < 3:
+                raise ValueError("expected valid option sentence")
+            # return {"option": list(fields[2:13])}
+            return {
+                f"option[{i}]": val 
+                for i, val in enumerate(fields[2:13], start=1)
+            }
     except (UnicodeDecodeError, ValueError) as error:
         logging.warning("Invalid instrument sentence: %s", error)
         return None

@@ -22,7 +22,7 @@
         SAIL_NAMES = [0, "Jib &#x24C2;", "Spi &#x24C2;", "Stay &#x24C2;", "LJ &#x24C2;", "C0 &#x24C2;", "HG &#x24C2;", "LG &#x24C2;", 8, 9,
                         "Auto", "Jib &#x24B6;", "Spi &#x24B6;", "Stay &#x24B6;", "LJ &#x24B6;", "C0 &#x24B6;", "HG &#x24B6;", "LG &#x24B6;"];
     }
-    STAMINA_EMOTICON = ["😫", "😳", "😒", "😴", "😐", "🙂", "😊", "😀", "😁", "🤩"];
+    STAMINA_EMOTICON = ["😫", "😫", "😳", "😒", "😴", "😐", "🙂", "😊", "😀", "😁", "🤩"];
     $: instruments = position.instruments || {};
 </script>
 
@@ -53,7 +53,8 @@
 {#if Number.isInteger(instruments.sail)}
     <div class="marge"><strong>{t('sail')} :</strong> {@html SAIL_NAMES[instruments.sail]}</div>
 {/if}
-{#if Number.isFinite(instruments.foil)}
+{#if instruments['option[1]'] === 'foil'}
+    <div class="marge"><strong>{t('Options')} :</strong> {instruments['option[1]']}</div>
     <div class="marge"><strong>{t('foiling')} :</strong> {instruments.foil.toFixed(0)}%</div>
 {/if}
 <style>
