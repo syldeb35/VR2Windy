@@ -23,10 +23,9 @@
                         "Auto", "Jib &#x24B6;", "Spi &#x24B6;", "Stay &#x24B6;", "LJ &#x24B6;", "C0 &#x24B6;", "HG &#x24B6;", "LG &#x24B6;"];
     }
     STAMINA_EMOTICON = ["😫", "😫", "😳", "😒", "😴", "😐", "🙂", "😊", "😀", "😁", "🤩"];
-    $: instruments = position.instruments || {};
 </script>
-{#if instruments.distanceToEnd !== undefined && Number.isFinite(instruments.distanceToEnd)}
-    <div class="marge"><strong>{t('remainingDistance')} :</strong> {instruments.distanceToEnd.toFixed(1)} NM</div>
+{#if position.instruments?.distanceToEnd !== undefined && Number.isFinite(position.instruments?.distanceToEnd)}
+    <div class="marge"><strong>{t('remainingDistance')} :</strong> {position.instruments.distanceToEnd.toFixed(1)} NM</div>
 {/if}
 {#if position.heading !== null}
     <div class="marge"><strong>COG :</strong> {position.heading.toFixed(1)}°</div>
@@ -40,24 +39,24 @@
 
 
 <div class="title"><strong>{t('wind')}</strong></div>
-{#if instruments.true_wind && Number.isFinite(instruments.true_wind.angle) && Number.isFinite(instruments.true_wind.speed)}
-    <div class="marge"><strong>{t('trueWind')} :</strong> {convertTrueWindAngle(instruments.true_wind.angle).angle.toFixed(1)}° {convertTrueWindAngle(instruments.true_wind.angle).side} / {instruments.true_wind.speed.toFixed(1)} {t('knots')}</div>
+{#if position.instruments?.true_wind && Number.isFinite(position.instruments?.true_wind.angle) && Number.isFinite(position.instruments?.true_wind.speed)}
+    <div class="marge"><strong>{t('trueWind')} :</strong> {convertTrueWindAngle(position.instruments.true_wind.angle).angle.toFixed(1)}° {convertTrueWindAngle(position.instruments.true_wind.angle).side} / {position.instruments.true_wind.speed.toFixed(1)} {t('knots')}</div>
 {/if}
-{#if instruments.apparent_wind && Number.isFinite(instruments.apparent_wind.angle) && Number.isFinite(instruments.apparent_wind.speed) && ['L', 'R'].includes(instruments.apparent_wind.side)}
-    <div class="marge"><strong>{t('apparentWind')} :</strong> {instruments.apparent_wind.angle.toFixed(1)}° {instruments.apparent_wind.side === 'R' ? t('starboard') : t('port')} / {instruments.apparent_wind.speed.toFixed(1)} {t('knots')}</div>
+{#if position.instruments?.apparent_wind && Number.isFinite(position.instruments?.apparent_wind.angle) && Number.isFinite(position.instruments?.apparent_wind.speed) && ['L', 'R'].includes(position.instruments?.apparent_wind.side)}
+    <div class="marge"><strong>{t('apparentWind')} :</strong> {position.instruments.apparent_wind.angle.toFixed(1)}° {position.instruments.apparent_wind.side === 'R' ? t('starboard') : t('port')} / {position.instruments.apparent_wind.speed.toFixed(1)} {t('knots')}</div>
 {/if}
 
 
 <div class="title"><strong>{t('energyAndSails')}</strong></div>
-{#if Number.isFinite(instruments.energy)}
-    <div class="marge"><strong>{t('energy')} :</strong> {instruments.energy}% <strong>{t('stamina')}</strong> {@html STAMINA_EMOTICON[(instruments.energy/10).toFixed(0)]}</div>
+{#if Number.isFinite(position.instruments?.energy)}
+    <div class="marge"><strong>{t('energy')} :</strong> {position.instruments.energy}% <strong>{t('stamina')}</strong> {@html STAMINA_EMOTICON[(position.instruments.energy/10).toFixed(0)]}</div>
 {/if}
-{#if Number.isInteger(instruments.sail)}
-    <div class="marge"><strong>{t('sail')} :</strong> {@html SAIL_NAMES[instruments.sail]}</div>
+{#if Number.isInteger(position.instruments?.sail)}
+    <div class="marge"><strong>{t('sail')} :</strong> {@html SAIL_NAMES[position.instruments.sail]}</div>
 {/if}
-{#if instruments['option[1]'] === 'foil'}
-    <div class="marge"><strong>{t('Options')} :</strong> {instruments['option[1]']}</div>
-    <div class="marge"><strong>{t('foiling')} :</strong> {instruments.foil.toFixed(0)}%</div>
+{#if position.instruments?.['option[1]'] === 'foil'}
+    <div class="marge"><strong>{t('Options')} :</strong> {position.instruments['option[1]']}</div>
+    <div class="marge"><strong>{t('foiling')} :</strong> {position.instruments.foil.toFixed(0)}%</div>
 {/if}
 <style>
 
