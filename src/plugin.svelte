@@ -128,6 +128,7 @@
         czeAladin: 'cze-aladin',
     };
 
+    let step = 12;
     let raceId = '';
     let raceInput = '';
     let status = t('enterRaceId');
@@ -538,11 +539,12 @@
     /**
      * Returns the step size in hours for the given hour.
      * The step size is 1 hour for the first 6 hours, 3 hours for the next 6 hours, and 12 hours thereafter.
-     * @param hour
+     * @param step The current step index.
+     * @param hour The current hour.
      */
-    function getMarkerStepHours(hour) {
-        if (hour < 6) return 1;
-        if (hour < 12) return 3;
+    function getMarkerStepHours(step, hour) {
+        if (hour < step) return 1;
+        if (hour < step *2) return 3;
         return 12;
     }
 
@@ -567,7 +569,7 @@
         for (
             let hour = 0;
             firstTimestamp + hour * 3600000 <= lastTimestamp;
-            hour += getMarkerStepHours(hour)
+            hour += getMarkerStepHours(step,hour)
         ) {
             const targetTimestamp = firstTimestamp + hour * 3600000;
             while (
@@ -609,7 +611,7 @@
             }),
         });
         const waypointTime = waypoint.timestamp === null ? '' : new Date(waypoint.timestamp).toLocaleString(dateLocale);
-        const waypointName = waypoint.name ? `<br>${escapeHtml(waypoint.name)}` : '';
+        const waypointPosition = `${formatCoordinate(waypoint.lat, 'N', 'S')} - ${formatCoordinate(waypoint.lon, 'E', 'W')}`;
         const { cog, sog, twa, sail } = waypoint.details;
         const detailLines = [
             cog && `<strong>COG :</strong> ${escapeHtml(cog)}`,
@@ -617,7 +619,7 @@
             twa && `<strong>TWA :</strong> ${escapeHtml(formatTwa(twa))}`,
             sail && `<strong>SAIL :</strong> ${escapeHtml(sail)}`,
         ].filter(Boolean).map(line => `<br>${line}`).join('');
-        const content = `<strong>${escapeHtml(label)}</strong>${waypointName}${waypointTime ? `<br>${escapeHtml(waypointTime)}` : ''}${detailLines}`;
+        const content = `<center><strong>${escapeHtml(label)}</strong></center>${waypointPosition}${waypointTime ? `<br>${escapeHtml(waypointTime)}` : ''}${detailLines}`;
         marker.bindTooltip(content, { offset: [0, -10] });
         if (waypoint.timestamp !== null) marker.on('click', () => {
             try {
