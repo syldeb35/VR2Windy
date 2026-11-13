@@ -72,6 +72,7 @@
         <div style="font-size: 10px;">© 2026 Malouce Software</div>
     </footer>
 </section>
+
 <script>
     import bcast from '@windy/broadcast';
     import { map } from '@windy/map';
@@ -134,9 +135,6 @@
     let latestDate = null;
     let latestHour = null;
     let boatMarker = null;
-    let boatPopup = null;
-    let boatPopupContent = '';
-    let boatPopupPinned = false;
     let courseVector = null;
     let fleetMarkers = new Map();
     let fleetCount = 0;
@@ -246,10 +244,10 @@
             const key = String(boat.name || boat.mmsi || `${boat.lat},${boat.lon}`);
             seen.add(key);
             const label = escapeHtml(boat.name || t('competitor'));
-            const popup = `<strong>${label}</strong><br>${formatCoordinate(boat.lat, 'N', 'S')} - ${formatCoordinate(boat.lon, 'E', 'W')}<br>HDG ${Number(boat.heading).toFixed(0)}° - ${Number(boat.speed).toFixed(1)} ${t('knots')}`;
+            const tooltip = `<strong>${label}</strong><br>${formatCoordinate(boat.lat, 'N', 'S')} - ${formatCoordinate(boat.lon, 'E', 'W')}<br>HDG ${Number(boat.heading).toFixed(0)}° - ${Number(boat.speed).toFixed(1)} ${t('knots')}`;
             const existing = fleetMarkers.get(key);
             if (existing) {
-                existing.setLatLng([boat.lat, boat.lon]).setPopupContent(popup);
+                existing.setLatLng([boat.lat, boat.lon]).setTooltipContent(tooltip);
             } else {
                 const marker = L.marker([boat.lat, boat.lon], {
                     icon: L.divIcon({
@@ -259,8 +257,7 @@
                         iconAnchor: [7, 7],
                     }),
                 }).addTo(map);
-                marker.bindPopup(popup);
-                marker.bindTooltip(label);
+                marker.bindTooltip(tooltip);
                 fleetMarkers.set(key, marker);
             }
         });
@@ -291,9 +288,6 @@
 
     function clearMapFeatures() {
         clearFleet();
-        boatPopup?.remove();
-        boatPopup = null;
-        boatPopupPinned = false;
         if (boatMarker) {
             map.removeLayer(boatMarker);
             boatMarker = null;
@@ -305,12 +299,7 @@
     }
 
     function removeRouteItems(items) {
-        for (const { layer, popup } of items) {
-            try {
-                if (popup) map.closePopup(popup);
-            } catch (error) {
-                console.warn('ITYC : fermeture du popup impossible', error);
-            }
+        for (const { layer } of items) {
             try {
                 layer.off();
                 map.removeLayer(layer);
@@ -326,10 +315,9 @@
         const route = routes.find(item => item.id === routeId);
         if (!route) return;
         const hidden = !route.hidden;
-        for (const { layer, popup } of route.items) {
+        for (const { layer } of route.items) {
             try {
                 if (hidden) {
-                    if (popup) map.closePopup(popup);
                     map.removeLayer(layer);
                 } else {
                     layer.addTo(map);
@@ -525,13 +513,7 @@
             sail && `<strong>SAIL :</strong> ${escapeHtml(sail)}`,
         ].filter(Boolean).map(line => `<br>${line}`).join('');
         const content = `<strong>${escapeHtml(label)}</strong>${waypointName}${waypointTime ? `<br>${escapeHtml(waypointTime)}` : ''}${detailLines}`;
-        const popup = L.popup({
-            autoClose: false,
-            closeOnClick: false,
-            offset: [0, -10],
-        }).setLatLng(marker.getLatLng()).setContent(content);
-        marker.on('mouseover', () => popup.openOn(map));
-        marker.on('mouseout', () => map.closePopup(popup));
+        marker.bindTooltip(content, { offset: [0, -10] });
         if (waypoint.timestamp !== null) marker.on('click', () => {
             try {
                 const myTimestamp = Math.round(waypoint.timestamp/3600/1000)*3600*1000;
@@ -541,7 +523,7 @@
                 routeStatus = t('timelineError', { error: error.message });
             }
         });
-        return { layer: marker, popup };
+        return { layer: marker };
     }
 
     function createRouteItems(segments, hourlyWaypoints, arrival, color, name) {
@@ -706,31 +688,11 @@
         pollPosition();
     }
 
-    function showBoatPopup() {
-        if (!boatMarker) return;
-        if (!boatPopup) {
-            boatPopup = L.popup({
-                autoClose: false,
-                closeOnClick: false,
-                offset: [0, -8],
-            });
-            boatPopup.on('remove', () => {
-                boatPopupPinned = false;
-            });
-        }
-        boatPopup.setLatLng(boatMarker.getLatLng()).setContent(boatPopupContent).openOn(map);
-    }
-
-    function hideBoatPopup() {
-        boatPopup?.remove();
-    }
-
     function displayPosition(position) {
         const latLng = [position.lat, position.lon];
         const coordinates = `${formatCoordinate(position.lat, 'N', 'S')} - ${formatCoordinate(position.lon, 'E', 'W')}`;
-        const popup = `<strong>${t('boatPosition')}</strong><br>${coordinates}<br>${new Date(position.timestamp).toLocaleString(dateLocale)}`;
+        const tooltip = `<strong>${t('boatPosition')}</strong><br>${coordinates}<br>${new Date(position.timestamp).toLocaleString(dateLocale)}`;
 
-        boatPopupContent = popup;
         if (!boatMarker) {
             boatMarker = L.marker(latLng, {
                 icon: L.divIcon({
@@ -740,19 +702,9 @@
                     iconAnchor: [10, 10],
                 }),
                 zIndexOffset: 1000,
-            }).addTo(map);
-            boatMarker.on('mouseover', () => showBoatPopup());
-            boatMarker.on('mouseout', () => {
-                if (!boatPopupPinned) hideBoatPopup();
-            });
-            boatMarker.on('click', () => {
-                boatPopupPinned = !boatPopupPinned;
-                if (boatPopupPinned) showBoatPopup();
-                else hideBoatPopup();
-            });
+            }).addTo(map).bindTooltip(tooltip, { offset: [0, -8] });
         } else {
-            boatMarker.setLatLng(latLng);
-            if (boatPopup) boatPopup.setLatLng(latLng).setContent(popup);
+            boatMarker.setLatLng(latLng).setTooltipContent(tooltip);
         }
 
         if (position.heading !== null && position.speed !== null) {
