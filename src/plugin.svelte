@@ -153,8 +153,18 @@
     let weatherMetadataRequest;
     let weatherMetadataPollTimer;
 
-    function openWindyMenu() { bcast.emit('rqstOpen', 'menu'); }
+    /**
+     * Opens the Windy menu.
+     */
+    function openWindyMenu() { 
+        bcast.emit('rqstOpen', 'menu'); 
+    }
 
+    /**
+     * Formats the age of the last update based on the given timestamp.
+     * @param timestamp
+     * @returns {string}
+     */
     function formatUpdateAge(timestamp) {
         const elapsedMinutes = Math.max(0, Math.floor((Date.now() - timestamp) / 60000));
         if (elapsedMinutes < 60) {
@@ -167,6 +177,10 @@
         return t('days', { count: Math.floor(elapsedHours / 24) });
     }
 
+    /**
+     * Updates the weather metadata for the current product.
+     * Fetches the metadata from the Windy API and handles errors.
+     */
     async function updateWeatherMetadata() {
         weatherMetadataRequest?.abort();
         weatherMetadataRequest = null;
@@ -223,6 +237,10 @@
         }
     }
 
+    /**
+     * Handles keydown events on the title element.
+     * Opens the Windy menu when Enter or Space is pressed.
+     */
     function handleTitleKeydown(event) {
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
@@ -230,13 +248,19 @@
         }
     }
 
-
+    /**
+     * Clears all fleet markers from the map.
+     */
     function clearFleet() {
         fleetMarkers.forEach(marker => map.removeLayer(marker));
         fleetMarkers.clear();
         fleetCount = 0;
     }
 
+    /**
+     * Displays the fleet of boats on the map.
+     * @param boats Array of boat objects containing lat, lon, name, heading, and speed.
+     */
     function displayFleet(boats) {
         const seen = new Set();
         boats.forEach(boat => {
@@ -270,6 +294,10 @@
         fleetCount = fleetMarkers.size;
     }
 
+    /**
+     * Polls the fleet data from the server and updates the map.
+     * @param signal AbortSignal to cancel the request if needed.
+     */
     async function pollFleet(signal) {
         try {
             const response = await fetch(`http://localhost:${PROXY_PORT}/fleet/${raceId}`, {
@@ -286,6 +314,9 @@
         }
     }
 
+    /**
+     * Clears all map features including fleet markers, boat marker, and course vector.
+     */
     function clearMapFeatures() {
         clearFleet();
         if (boatMarker) {
@@ -298,6 +329,10 @@
         }
     }
 
+    /**
+     * Removes the specified route items from the map.
+     * @param items Array of route items containing layers to be removed.
+     */
     function removeRouteItems(items) {
         for (const { layer } of items) {
             try {
@@ -311,6 +346,10 @@
         }
     }
 
+    /**
+     * Toggles the visibility of a route on the map.
+     * @param routeId ID of the route to toggle.
+     */
     function toggleRouteVisibility(routeId) {
         const route = routes.find(item => item.id === routeId);
         if (!route) return;
@@ -330,6 +369,10 @@
         //routeStatus = `Routage ${hidden ? 'masqué' : 'affiché'} : ${route.name}.`;
     }
 
+    /**
+     * Removes a route from the map and the internal routes list.
+     * @param routeId ID of the route to remove.
+     */
     function removeRoute(routeId) {
         const route = routes.find(item => item.id === routeId);
         if (!route) return;
@@ -338,14 +381,32 @@
         //routeStatus = `Routage retiré : ${route.name}.`;
     }
 
+    /**
+     * Gets the direct children of an element with the specified local name.
+     * @param element The parent element.
+     * @param localName The local name of the child elements to retrieve.
+     * @returns Array of matching child elements.
+     */
     function getDirectChildren(element, localName) {
         return Array.from(element.children).filter(child => child.localName === localName);
     }
 
+    /**
+     * Gets the text content of the first direct child with the specified local name.
+     * @param element The parent element.
+     * @param localName The local name of the child element.
+     * @returns The trimmed text content or an empty string if not found.
+     */
     function getDirectChildText(element, localName) {
         return getDirectChildren(element, localName)[0]?.textContent?.trim() || '';
     }
 
+    /**
+     * Reads the latitude and longitude from a GPX point element.
+     * @param point The GPX point element.
+     * @returns Array containing [lat, lon].
+     * @throws Error if the coordinates are invalid.
+     */
     function readGpxPoint(point) {
         const latitude = point.getAttribute('lat');
         const longitude = point.getAttribute('lon');
@@ -359,6 +420,11 @@
         return [lat, lon];
     }
 
+    /**
+     * Reads a GPX waypoint element and extracts relevant information.
+     * @param point The GPX waypoint element.
+     * @returns Object containing lat, lon, name, details, and timestamp.
+     */
     function readGpxWaypoint(point) {
         const [lat, lon] = readGpxPoint(point);
         const timeText = getDirectChildText(point, 'time');
@@ -372,6 +438,11 @@
         };
     }
 
+    /**
+     * Parses the description field of a GPX waypoint for specific keys.
+     * @param description The description string from the GPX waypoint.
+     * @returns Object containing cog, sog, twa, and sail values.
+     */
     function parseWaypointDescription(description) {
         const readValue = key => description.match(new RegExp(`\\b${key}\\s*=\\s*(\\S+)`))?.[1] ?? null;
         return {
@@ -382,6 +453,11 @@
         };
     }
 
+    /**
+     * Formats a true wind angle (TWA) for display, converting it to the appropriate side and angle.
+     * @param twa The true wind angle as a string.
+     * @returns Formatted TWA string with angle and side.
+     */
     function formatTwa(twa) {
         const angle = Number.parseFloat(twa.replace(',', '.'));
         if (!Number.isFinite(angle)) return twa;
@@ -393,6 +469,11 @@
         return `${formattedValue}°${side}`;
     }
 
+    /**
+     * Escapes HTML special characters in a string to prevent XSS.
+     * @param value The string to escape.
+     * @returns Escaped string safe for HTML.
+     */
     function escapeHtml(value) {
         return String(value).replace(/[&<>"']/g, character => ({
             '&': '&amp;',
@@ -403,6 +484,12 @@
         })[character]);
     }
 
+    /**
+     * Parses a GPX route from the provided XML text.
+     * @param xmlText The GPX XML content as a string.
+     * @returns Object containing waypoints, route name, and segments.
+     * @throws Error if the GPX is invalid or contains no route data.
+     */
     function parseGpxRoute(xmlText) {
         if (/<!DOCTYPE/i.test(xmlText)) {
             throw new Error(t('doctypeNotAllowed'));
@@ -448,13 +535,24 @@
         return { segments, waypoints, routeName };
     }
 
-    // Pas entre deux marqueurs : 1 h jusqu'à H+6, 3 h jusqu'à H+12, puis 12 h.
+    /**
+     * Returns the step size in hours for the given hour.
+     * The step size is 1 hour for the first 6 hours, 3 hours for the next 6 hours, and 12 hours thereafter.
+     * @param hour
+     */
     function getMarkerStepHours(hour) {
         if (hour < 6) return 1;
         if (hour < 12) return 3;
         return 12;
     }
 
+    /**
+     * Returns an array of hourly waypoints based on the input waypoints.
+     * Each element contains a label (e.g., "H", "H+1") and the corresponding waypoint.
+     * Waypoints without a timestamp are ignored.
+     * @param waypoints The array of waypoint objects to process.
+     * @returns {Array<{label: string, waypoint: Object}>}  An array of objects each containing a label and the corresponding waypoint.
+     */
     function getMarkerWaypoints(waypoints) {
         const timedWaypoints = waypoints
             .filter(point => point.timestamp !== null)
@@ -492,6 +590,13 @@
         return hourlyWaypoints;
     }
 
+    /**
+     * Creates a marker for an hourly waypoint.
+     * @param waypoint The hourly waypoint object containing label and waypoint details.
+     * @param routeName
+     * @param routeColor
+     * @returns {{layer: L.Marker}}
+     */
     function createHourlyWaypointMarker({ label, waypoint }, routeName, routeColor) {
         const isArrival = label === t('arrival');
         const markerWidth = isArrival ? 64 : 44;
@@ -526,6 +631,15 @@
         return { layer: marker };
     }
 
+    /**
+     * Creates route items including segments and hourly waypoints.
+     * @param segments
+     * @param hourlyWaypoints
+     * @param arrival
+     * @param color
+     * @param name
+     * @returns {Array<{layer: L.Layer}>}
+     */
     function createRouteItems(segments, hourlyWaypoints, arrival, color, name) {
         return [
             ...segments.map(segment => ({
@@ -545,6 +659,10 @@
         ];
     }
 
+    /**
+     * Handles the import of GPX files from an input event.
+     * @param event
+     */
     async function importGpx(event) {
         const input = event.currentTarget;
         const selectedFiles = Array.from(input.files || []);
@@ -614,6 +732,13 @@
         centerOnBoat();
     }
 
+    /**
+     * Formats a coordinate value into degrees, minutes, and seconds with hemisphere.
+     * @param value
+     * @param positiveHemisphere
+     * @param negativeHemisphere
+     * @returns {string}
+     */
     function formatCoordinate(value, positiveHemisphere, negativeHemisphere) {
         const hundredthsOfSeconds = Math.round(Math.abs(value) * 360000);
         const degrees = Math.floor(hundredthsOfSeconds / 360000);
@@ -624,6 +749,13 @@
         return `${degrees}°${String(minutes).padStart(2, '0')}'${seconds}"${hemisphere}`;
     }
 
+    /**
+     * Calculates the destination point given a starting position, bearing, and distance.
+     * @param position
+     * @param bearingDegrees
+     * @param distanceMeters
+     * @returns {[number, number]} Latitude and longitude of the destination point.
+     */
     function destinationPoint(position, bearingDegrees, distanceMeters) {
         const earthRadiusMeters = 6371008.8;
         const angularDistance = distanceMeters / earthRadiusMeters;
@@ -644,6 +776,12 @@
         return [destinationLatitude * 180 / Math.PI, normalizedLongitude];
     }
 
+    /**
+     * Computes the one-hour movement vector for a given position.
+     * @param position The current position object containing lat, lon, speed, and heading.
+     * @returns {[Array<number>, Array<number>, Array<number>, Array<number>, Array<number>]} Start, destination, left wing, destination, right wing coordinates.
+     */
+
     function getOneHourVector(position) {
         const start = [position.lat, position.lon];
         const distanceMeters = position.speed * 1852;
@@ -662,6 +800,10 @@
         return [start, destination, leftWing, destination, rightWing];
     }
 
+    /**
+     * Save the current settings to local storage.
+     * Validates the race ID and updates the application state accordingly.
+     */
     function saveSettings() {
         const selectedRace = raceInput.trim();
         if (!/^\d{1,5}$/.test(selectedRace)) {
@@ -688,6 +830,11 @@
         pollPosition();
     }
 
+    /**
+     * Displays the boat's current position on the map.
+     * Updates the boat marker and course vector based on the position data.
+     * @param position
+     */
     function displayPosition(position) {
         const latLng = [position.lat, position.lon];
         const coordinates = `${formatCoordinate(position.lat, 'N', 'S')} - ${formatCoordinate(position.lon, 'E', 'W')}`;
@@ -724,6 +871,11 @@
         }
     }
 
+    /**
+     * Validates if the given value is a proper position object.
+     * @param value
+     * @returns {boolean}
+     */
     function isValidPosition(value) {
         return value &&
             Number.isFinite(value.lat) && value.lat >= -90 && value.lat <= 90 &&
@@ -733,6 +885,10 @@
             (value.speed === null || (Number.isFinite(value.speed) && value.speed >= 0));
     }
 
+    /**
+     * Polls the current position from the server and updates the map accordingly.
+     * Handles errors and adjusts the polling interval.
+     */
     async function pollPosition() {
         if (!mounted) return;
         if (!configured) {
@@ -795,18 +951,29 @@
             }
         }
     }
+
+    /**
+     * Centers the map on the given position.
+     * @param position
+     */
     function centerChart(position) {
         if (position) map.panTo([position.lat, position.lon]);
     }
 
+    /**
+     * Centers the map on the boat's latest known position.
+     */
     function centerOnBoat() {
         if (latestPosition) map.panTo([latestPosition.lat, latestPosition.lon]);
     }
 
+    /**
+     * Called when the plugin is opened.
+     * Centers the map on the boat if the latest position is available.
+     */
     export const onopen = () => {
         if (latestPosition) centerOnBoat();
     };
-
     onMount(() => {
         mounted = true;
         if (store.get('product') !== DEFAULT_WEATHER_PRODUCT) {
