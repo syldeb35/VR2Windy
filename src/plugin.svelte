@@ -939,7 +939,7 @@
             nextPollIntervalMs = POLL_INTERVAL_MS;
             latestDate = `${new Date(position.timestamp).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short', year: 'numeric' })}`;
             latestHour = `${new Date(position.timestamp).toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' })}`;
-
+            console.log(latestPosition);
 
         } catch (error) {
             if (!request.signal.aborted) {

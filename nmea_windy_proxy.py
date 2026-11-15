@@ -128,31 +128,37 @@ def parse_instrument_sentence(message):
                 "angle": number(fields[1], 0, 360),
                 "speed": number(fields[3], 0),
             }}
+        
         if kind == "$IIVWR":
             if len(fields) < 5 or fields[2] not in ("L", "R") or fields[4] != "N":
                 raise ValueError("expected apparent wind in knots with side L or R")
             return {"apparent_wind": {
-                "angle": number(fields[1], 0, 180),
+                "angle": 0 if fields[1] == "NaN" else number(fields[1], 0, 180),
                 "side": fields[2],
                 "speed": number(fields[3], 0),
             }}
+        
         if kind == "$IIHDT":
             if len(fields) < 3 or fields[2] != "T":
                 raise ValueError("expected true heading")
             return {"boat_heading": number(fields[1], 0, 360)}
+        
         if kind == "$IIRPM":
             if len(fields) < 6 or fields[1] != "E" or fields[5] != "A" or not fields[2].isdigit():
                 raise ValueError("expected valid ITYC energy and sail")
             return {"sail": int(fields[2]), "energy": number(fields[3], 0), "foil": number(fields[4], 0)}
+        
         if kind == "$IIOPT":
             if len(fields) < 3:
                 raise ValueError("expected valid option sentence")
+        
         if kind == "$IITTM":
             if len(fields) < 3:
                 raise ValueError("expected valid option sentence")
             return {
                 "distanceToEnd": number(fields[2], 0)
             }
+    
     except (UnicodeDecodeError, ValueError) as error:
         logging.warning("Invalid instrument sentence: %s", error)
         return None
