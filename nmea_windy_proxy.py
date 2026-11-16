@@ -372,7 +372,7 @@ class NMEAServer(socketserver.TCPServer):
         super().server_bind()
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 logging.info("Creating Server")
 server = NMEAServer((HOST, PORT), NMEAHandler)
