@@ -95,6 +95,11 @@ class ProxyControlWindow:
         self.log.insert("end", message + "\n")
         self.log.see("end")
         self.log.configure(state="disabled")
+    
+    def clear_log(self):
+        self.log.configure(state="normal")
+        self.log.delete("1.0", "end")
+        self.log.configure(state="disabled")
 
     def update_buttons(self):
         self.start_button.configure(state="normal" if self.state == "stopped" else "disabled")
@@ -103,6 +108,7 @@ class ProxyControlWindow:
 
     def start(self):
         try:
+            self.clear_log()
             self.proxy.start()
         except (OSError, RuntimeError) as error:
             self.status.set("Erreur de démarrage")
@@ -130,6 +136,7 @@ class ProxyControlWindow:
         self.request_stop("stop")
 
     def restart(self):
+        self.clear_log()
         self.request_stop("restart")
 
     def close(self):
