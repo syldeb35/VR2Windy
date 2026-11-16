@@ -241,6 +241,7 @@ class NMEAHandler(http.server.BaseHTTPRequestHandler):
             self.send_error(400)
             return
         post_body = self.rfile.read(content_len)
+        # logging.info("Body : %s", post_body.decode("ascii", errors="replace"))
         race_number = int(match.group(1))
         race_id = str(race_number)
         if not 0 <= OUTPORT + race_number <= 65535:
