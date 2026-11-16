@@ -114,7 +114,7 @@ uploads remain private.
 ## Network and privacy
 
 The plugin requests loopback access to `localhost`; Chrome may ask for local
-network permission. The proxy accepts browser CORS preflights only from
+network permission. The proxy accepts browser CORS pre-flights only from
 approved Windy origins. If you deliberately bind the proxy to another
 interface, restrict access with your firewall and do not expose it directly
 to the public Internet.
