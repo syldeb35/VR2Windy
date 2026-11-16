@@ -201,9 +201,9 @@ class ProxyControlWindow:
 
 def main():
     root = tk.Tk(className="VR2Windy Proxy")
-    chemin_icone = Path(__file__).resolve().with_name("proxy_icon.png")
-    icone = tk.PhotoImage(file=str(chemin_icone))
-    root.iconphoto(False, icone)
+    chemin_icon = Path(__file__).resolve().with_name("proxy_icon.png")
+    icon = tk.PhotoImage(file=str(chemin_icon))
+    root.iconphoto(False, icon)
     ProxyControlWindow(root)
     root.mainloop()
 
