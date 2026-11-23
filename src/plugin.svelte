@@ -38,6 +38,23 @@
     {/each}
     <p class="route-status" role="status" aria-live="polite">{routeStatus}</p>
 
+    <p class="title">{t('restrictedZones')}</p>
+    <label for="restricted-zones-input">{t('restrictedZonesFile')}</label>
+    <input
+        type="file"
+        id="restricted-zones-input"
+        name="restricted-zones"
+        accept=".json,.geojson,application/json,application/geo+json"
+        on:change={importRestrictedZones}
+    />
+    {#if restrictedZonesLayer}
+        <div class="route-info">
+            <span>{restrictedZonesName}</span>
+            <button class="route-button" on:click={removeRestrictedZones} aria-label={t('removeRestrictedZones')} title={t('remove')}>×</button>
+        </div>
+    {/if}
+    <p class="route-status" role="status" aria-live="polite">{restrictedZonesStatus}</p>
+
     {#if fleetCount > 1}
         <p class="title">
             {t('aisCompetitors')}
@@ -82,6 +99,7 @@
     import BoatMeasurements from './BoatMeasurements.svelte';
     import { getLanguage, translate } from './i18n.js';
     import config from './pluginConfig';
+    import { parseRestrictedZones } from './restrictedZones.js';
 
     const { title } = config;
     const language = getLanguage();
@@ -142,6 +160,10 @@
     let routes = [];
     let nextRouteId = 0;
     let routeStatus = t('routeStatusInitial');
+    let restrictedZonesLayer = null;
+    let restrictedZonesName = '';
+    let restrictedZonesStatus = '';
+    let restrictedZonesRequest = 0;
     let pollTimer;
     let nextPollIntervalMs = POLL_INTERVAL_MS;
     let activeRequest;
@@ -661,6 +683,84 @@
         ];
     }
 
+    async function importRestrictedZones(event) {
+        const input = event.currentTarget;
+        const file = input.files?.[0];
+        input.value = '';
+        if (!file) return;
+        const request = ++restrictedZonesRequest;
+        let layer;
+        try {
+            if (file.size > 25 * 1024 * 1024) throw new Error(t('fileTooLarge'));
+            const text = await file.text();
+            if (!mounted || request !== restrictedZonesRequest) return;
+            let data;
+            try {
+                data = parseRestrictedZones(text);
+            } catch (error) {
+                if (error.message !== 'invalidRestrictedZones') throw error;
+                throw new Error(t('invalidRestrictedZones'));
+            }
+            layer = L.geoJSON(data, {
+                interactive: true,
+                style: { color: '#e53935', weight: 2, fillOpacity: 0.2 },
+                onEachFeature: (feature, featureLayer) => {
+                    if (typeof feature.properties?.name === 'string' && feature.properties.name) {
+                        let tooltip;
+                        const closeTooltip = () => {
+                            if (tooltip) map.removeLayer(tooltip);
+                            tooltip = null;
+                        };
+                        featureLayer.on('mouseover', event => {
+                            closeTooltip();
+                            tooltip = L.tooltip().setLatLng(event.latlng)
+                                .setContent(escapeHtml(feature.properties.name)).addTo(map);
+                        });
+                        featureLayer.on('mousemove', event => {
+                            if (tooltip) tooltip.setLatLng(event.latlng);
+                        });
+                        featureLayer.on('mouseout', closeTooltip);
+                        featureLayer.on('remove', closeTooltip);
+                    }
+                },
+            });
+            layer.addTo(map);
+            if (restrictedZonesLayer) map.removeLayer(restrictedZonesLayer);
+            restrictedZonesLayer = layer;
+            restrictedZonesName = file.name;
+            restrictedZonesStatus = t('restrictedZonesLoaded', { count: data.features.length });
+        } catch (error) {
+            let cleanupError = '';
+            if (layer) {
+                try {
+                    map.removeLayer(layer);
+                } catch (removalError) {
+                    cleanupError = t('restrictedZonesCleanupError', { error: removalError.message });
+                    console.warn(cleanupError, removalError);
+                }
+            }
+            if (mounted && request === restrictedZonesRequest) {
+                restrictedZonesStatus = t('importFailed', { errors: `${file.name} : ${error.message}` })
+                    + (cleanupError ? ` ${cleanupError}` : '');
+            }
+        }
+    }
+
+    function removeRestrictedZones() {
+        restrictedZonesRequest += 1;
+        try {
+            if (restrictedZonesLayer) map.removeLayer(restrictedZonesLayer);
+        } catch (error) {
+            const message = t('restrictedZonesCleanupError', { error: error.message });
+            restrictedZonesStatus = message;
+            console.warn(message, error);
+            return;
+        }
+        restrictedZonesLayer = null;
+        restrictedZonesName = '';
+        restrictedZonesStatus = '';
+    }
+
     /**
      * Handles the import of GPX files from an input event.
      * @param event
@@ -1010,6 +1110,7 @@
         weatherMetadataRequest?.abort();
         store.off('product', updateWeatherMetadata);
         clearMapFeatures();
+        removeRestrictedZones();
         routes.forEach(route => removeRouteItems(route.items));
         routes = [];
     });
@@ -1200,7 +1301,7 @@
     }
     footer {
         margin-top: 16px;
-        position: absolute;
+        position: relative;
         bottom: 0;
         text-align: right;
         padding: 5px;

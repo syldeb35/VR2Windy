@@ -83,6 +83,12 @@ a copy of NMEA output to the dedicated Windy proxy on port `8085`.
    For GPX files with timestamps, click a waypoint marker to move Windy's
    timeline to the recorded time.
 
+7. Under **Restricted zones** (or **Zones interdites**), select a `.json` or
+   `.geojson` GeoJSON FeatureCollection containing Polygon or MultiPolygon
+   features. The zones appear on the map with their names on hover. Loading
+   another file replaces the current zones; use the remove button to clear
+   them. The file is read locally and must not exceed 25 MB.
+
 The plugin selects GFS when it loads. You can choose a different forecast
 model in Windy. Model update and reference times are read from Windy's
 internal metadata manifest, which is not a documented API and may change.
